@@ -48,7 +48,7 @@ Send a test email via the command line. Good for testing!
 
 Credits
 =======
-Created by Human Made for high volume and large-scale sites. We run S3 Uploads on sites with millions of monthly page views, and thousands of sites.
+Created by Human Made for high volume and large-scale sites. We run AWS SES wp_mail() on sites with millions of monthly page views, and thousands of sites.
 
 Written and maintained by [Joe Hoyle](https://github.com/joehoyle). Thanks to all our [contributors](https://github.com/humanmade/S3-Uploads/graphs/contributors).
 
