@@ -70,10 +70,10 @@ class SES {
 			'headers'                    => array(
 				'Content-type'           => apply_filters( 'wp_mail_content_type', 'text/plain' ),
 			),
-			'from_name'                  => 'WordPress',
+			'from_name'                  => get_bloginfo( 'name' ),
 			'from_email'                 => $from_email,
 		);
-
+		$message_args['headers'] = array_merge( $message_args['headers'], $headers );
 		$message_args = apply_filters( 'aws_ses_wp_mail_pre_message_args', $message_args );
 
 		// Make sure our to value is an array so we can manipulate it for the API.
