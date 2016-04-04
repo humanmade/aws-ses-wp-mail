@@ -31,6 +31,14 @@ define( 'AWS_SES_WP_MAIL_KEY', '' );
 define( 'AWS_SES_WP_MAIL_SECRET', '' );
 ```
 
+If you plan to use IAM instance profiles to protect your AWS credentials on disk you'll need the following configuration instead:
+
+```PHP
+define('AWS_SES_WP_MAIL_REGION', 'us-east-1');
+define('AWS_SES_WP_MAIL_USE_INSTANCE_PROFILE', true);
+```
+
+
 The next thing that you should do is to verify your sending domain for SES:
 
 ```
