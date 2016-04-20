@@ -55,6 +55,17 @@ class SES {
 		// Compact the input, apply the filters, and extract them back out
 		extract( apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) ) );
 
+		// Get headers as array
+		if ( empty( $headers ) ) {
+			$headers = array();
+		}
+
+		if ( ! is_array( $headers ) ) {
+			// Explode the headers out, so this function can take both
+			// string headers and an array of headers.
+			$headers = explode( "\n", str_replace( "\r\n", "\n", $headers ) );
+		}
+
 		// Get the site domain and get rid of www.
 		$sitename = strtolower( parse_url( site_url(), PHP_URL_HOST ) );
 		if ( 'www.' === substr( $sitename, 0, 4 ) ) {
