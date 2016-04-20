@@ -158,7 +158,9 @@ class SES {
 	public function get_client() {
 		require_once dirname( dirname( __FILE__ ) ) . '/lib/aws-sdk/aws-autoloader.php';
 
-		$params = array();
+		$params = array(
+			'version' => '2010-12-01',
+		);
 
 		if ( $this->key && $this->secret ) {
 			$params['key'] = $this->key;
