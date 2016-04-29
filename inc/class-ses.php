@@ -87,9 +87,8 @@ class SES {
 			'to'                         => $to,
 			'headers'                    => array(
 				'Content-Type'           => apply_filters( 'wp_mail_content_type', 'text/plain' ),
+				'From'                   => sprintf( '%s <%s>', apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) ), apply_filters( 'wp_mail_from', $from_email ) ),
 			),
-			'from_name'                  => get_bloginfo( 'name' ),
-			'from_email'                 => $from_email,
 		);
 		$message_args['headers'] = array_merge( $message_args['headers'], $headers );
 		$message_args = apply_filters( 'aws_ses_wp_mail_pre_message_args', $message_args );
@@ -99,15 +98,11 @@ class SES {
 			$message_args['to'] = explode( ',', $message_args['to'] );
 		}
 
-		if ( $message_args['headers']['Content-type'] === 'text/plain' ) {
+		if ( $message_args['headers']['Content-Type'] === 'text/plain' ) {
 			$message_args['text'] = $message;
 		} else {
 			$message_args['html'] = $message;
 		}
-
-		// Default filters we should still apply.
-		$message_args['from_email'] = apply_filters( 'wp_mail_from', $message_args['from_email'] );
-		$message_args['from_name']  = apply_filters( 'wp_mail_from_name', $message_args['from_name'] );
 
 		// Allow user to override message args before they're sent to Mandrill.
 		$message_args = apply_filters( 'aws_ses_wp_mail_message_args', $message_args );
@@ -120,7 +115,7 @@ class SES {
 
 		try {
 			$args = array(
-				'Source'      => sprintf( '%s <%s>', $message_args['from_name'], $message_args['from_email'] ),
+				'Source'      => $message_args['headers']['From'],
 				'Destination' => array(
 					'ToAddresses' => $message_args['to']
 				),
