@@ -50,7 +50,7 @@ class SES {
 	 * @param  array $attachments
 	 * @return bool true if mail has been sent, false if it failed
 	 */
-	public function send_wp_mail( $to, $subject, $message, $headers = '', $attachments = array() ) {
+	public function send_wp_mail( $to, $subject, $message, $headers = array(), $attachments = array() ) {
 
 		// Compact the input, apply the filters, and extract them back out
 		extract( apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) ) );
@@ -66,6 +66,13 @@ class SES {
 			$headers = explode( "\n", str_replace( "\r\n", "\n", $headers ) );
 		}
 
+		// transform headers array into a key => value map
+		$headers = array_reduce( $headers, function( $headers, $header ) {
+			$header = array_map( 'trim', explode( ':', $header ) );
+			$headers[ $header[0] ] = $header[1];
+			return $headers;
+		}, array() );
+
 		// Get the site domain and get rid of www.
 		$sitename = strtolower( parse_url( site_url(), PHP_URL_HOST ) );
 		if ( 'www.' === substr( $sitename, 0, 4 ) ) {
@@ -79,7 +86,7 @@ class SES {
 			'subject'                    => $subject,
 			'to'                         => $to,
 			'headers'                    => array(
-				'Content-type'           => apply_filters( 'wp_mail_content_type', 'text/plain' ),
+				'Content-Type'           => apply_filters( 'wp_mail_content_type', 'text/plain' ),
 			),
 			'from_name'                  => get_bloginfo( 'name' ),
 			'from_email'                 => $from_email,
