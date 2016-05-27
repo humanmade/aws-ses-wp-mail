@@ -50,7 +50,7 @@ class WP_CLI_Command extends \WP_CLI_Command {
 
 		$dns_records = $this->get_sending_domain_dns_records( $domain );
 
-		WP_CLI::line( 'Submitted for verication. Make sure you have the following DNS records added to the domain:' );
+		WP_CLI::line( 'Submitted for verification. Make sure you have the following DNS records added to the domain:' );
 
 		\WP_CLI\Utils\format_items( 'table', $dns_records, array( 'Domain', 'Type', 'Value' ) );
 	}
