@@ -50,7 +50,7 @@ Once you have verified your sending domain, you are all good to go!
 Other Commands
 =======
 
-`wp aws-ses send-email <to> <subject> <message> [---from-email=<email>]`
+`wp aws-ses send <to> <subject> <message> [--from-email=<email>]`
 
 Send a test email via the command line. Good for testing!
 
