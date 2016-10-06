@@ -142,7 +142,7 @@ class SES {
 				);
 			}
 
-			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args );
+			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
 
 			$ses->sendEmail( $args );
 		} catch ( \Exception $e ) {
