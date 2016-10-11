@@ -67,11 +67,22 @@ class SES {
 		}
 
 		// transform headers array into a key => value map
-		$headers = array_reduce( $headers, function( $headers, $header ) {
-			$header = array_map( 'trim', explode( ':', $header ) );
-			$headers[ $header[0] ] = $header[1];
-			return $headers;
-		}, array() );
+		foreach ( $headers as $header => $value ) {
+			if ( strpos( $value, ':' ) ) {
+				$value = array_map( 'trim', explode( ':', $value ) );
+				$headers[ $value[0] ] = $header[1];
+				unset( $headers[ $header ] );
+			}
+		}
+
+		// normalize header names to Camel-Case
+		foreach ( $headers as $name => $value ) {
+			$uc_name = ucwords( $name, '-' );
+			if ( $uc_name !== $name ) {
+				$headers[ $uc_name ] = $value;
+				unset( $headers[ $name ] );
+			}
+		}
 
 		// Get the site domain and get rid of www.
 		$sitename = strtolower( parse_url( site_url(), PHP_URL_HOST ) );
