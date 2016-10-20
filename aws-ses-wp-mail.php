@@ -26,6 +26,7 @@ function wp_mail( $to, $subject, $message, $headers = '', $attachments = array()
 	$result = AWS_SES_WP_Mail\SES::get_instance()->send_wp_mail( $to, $subject, $message, $headers, $attachments );
 
 	if ( is_wp_error( $result ) ) {
+		trigger_error( 'Sendmail SES Email failed: %d %s', $result->get_error_code(), $result->get_error_message(), E_USER_WARNING );
 		return false;
 	}
 
