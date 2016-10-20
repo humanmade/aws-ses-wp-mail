@@ -63,14 +63,14 @@ class SES {
 		if ( ! is_array( $headers ) ) {
 			// Explode the headers out, so this function can take both
 			// string headers and an array of headers.
-			$headers = explode( "\n", str_replace( "\r\n", "\n", $headers ) );
+			$headers = array_filter( explode( "\n", str_replace( "\r\n", "\n", $headers ) ) );
 		}
 
 		// transform headers array into a key => value map
 		foreach ( $headers as $header => $value ) {
 			if ( strpos( $value, ':' ) ) {
 				$value = array_map( 'trim', explode( ':', $value ) );
-				$headers[ $value[0] ] = $header[1];
+				$headers[ $value[0] ] = $value[1];
 				unset( $headers[ $header ] );
 			}
 		}
@@ -154,7 +154,6 @@ class SES {
 			}
 
 			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
-
 			$ses->sendEmail( $args );
 		} catch ( \Exception $e ) {
 			return new WP_Error( get_class( $e ), $e->getMessage() );
