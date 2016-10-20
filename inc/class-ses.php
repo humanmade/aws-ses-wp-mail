@@ -98,7 +98,7 @@ class SES {
 			$message_args['to'] = explode( ',', $message_args['to'] );
 		}
 
-		if ( $message_args['headers']['Content-Type'] === 'text/plain' ) {
+		if ( strpos( $message_args['headers']['Content-Type'], 'text/plain' ) !== false ) {
 			$message_args['text'] = $message;
 		} else {
 			$message_args['html'] = $message;
