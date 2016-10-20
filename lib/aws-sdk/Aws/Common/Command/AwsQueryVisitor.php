@@ -37,7 +37,6 @@ class AwsQueryVisitor extends AbstractRequestVisitor
                 $this->resolveObject($param, $value, $prefix, $query);
                 break;
             case 'array':
-            var_dump($value);
                 $this->resolveArray($param, $value, $prefix, $query);
                 break;
             default:
