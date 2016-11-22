@@ -44,7 +44,7 @@ class WP_CLI_Command extends \WP_CLI_Command {
 			$domain = substr( $domain, 4 );
 		}
 
-		if ( $args_assoc['domain'] ) {
+		if ( isset( $args_assoc['domain'] ) ) {
 			$domain = $args_assoc['domain'];
 		}
 
