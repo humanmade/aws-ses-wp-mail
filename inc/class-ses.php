@@ -69,9 +69,9 @@ class SES {
 		// transform headers array into a key => value map
 		foreach ( $headers as $header => $value ) {
 			if ( strpos( $value, ':' ) ) {
+				unset( $headers[ $header ] );
 				$value = array_map( 'trim', explode( ':', $value ) );
 				$headers[ $value[0] ] = $value[1];
-				unset( $headers[ $header ] );
 			}
 		}
 
