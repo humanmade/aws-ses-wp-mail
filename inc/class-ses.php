@@ -175,8 +175,10 @@ class SES {
 		);
 
 		if ( $this->key && $this->secret ) {
-			$params['key'] = $this->key;
-			$params['secret'] = $this->secret;
+			$params['credentials'] = array(
+				'key'    => $this->key,
+				'secret' => $this->secret,
+			);
 		}
 
 		if ( $this->region ) {
