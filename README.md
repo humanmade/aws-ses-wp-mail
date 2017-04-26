@@ -1,11 +1,8 @@
 <table width="100%">
 	<tr>
-		<td align="left" width="70">
+		<td align="left" width="100%" colspan="2">
 			<strong>AWS SES wp_mail() drop-in</strong><br />
 			Use AWS SES to send your WordPress emails. Easily.
-		</td>
-		<td align="right" width="20%">
-
 		</td>
 	</tr>
 	<tr>
