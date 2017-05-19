@@ -79,7 +79,7 @@ class SES {
 
 		// normalize header names to Camel-Case
 		foreach ( $headers as $name => $value ) {
-			$uc_name = ucwords( $name, '-' );
+			$uc_name = ucwords( strtolower( $name ), '-' );
 			if ( $uc_name !== $name ) {
 				$headers[ $uc_name ] = $value;
 				unset( $headers[ $name ] );
