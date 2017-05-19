@@ -168,6 +168,10 @@ class SES {
 	 * @return Aws\Client\Ses|WP_Error
 	 */
 	public function get_client() {
+		if ( ! empty( $this->client ) ) {
+			return $this->client;
+		}
+
 		// Ensure the AWS SDK can be loaded.
 		if ( ! class_exists( '\\Aws\\Ses\\SesClient' ) ) {
 			// Require AWS Autoloader file.
@@ -204,9 +208,11 @@ class SES {
 		$params = apply_filters( 'aws_ses_wp_mail_ses_client_params', $params );
 
 		try {
-			return \Aws\Ses\SesClient::factory( $params );
+			$this->client = \Aws\Ses\SesClient::factory( $params );
 		} catch( \Exception $e ) {
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
+
+		return $this->client;
 	}
 }
