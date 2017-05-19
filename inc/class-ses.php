@@ -2,6 +2,8 @@
 
 namespace AWS_SES_WP_Mail;
 
+use Aws\Ses\SesClient;
+use Exception;
 use WP_Error;
 
 class SES {
@@ -155,7 +157,7 @@ class SES {
 
 			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
 			$ses->sendEmail( $args );
-		} catch ( \Exception $e ) {
+		} catch ( Exception $e ) {
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
 
@@ -165,18 +167,28 @@ class SES {
 	/**
 	 * Get the client for AWS SES.
 	 *
-	 * @return Aws\Client\Ses|WP_Error
+	 * @return SesClient|WP_Error
 	 */
 	public function get_client() {
-		require_once dirname( dirname( __FILE__ ) ) . '/lib/aws-sdk/aws-autoloader.php';
+		if ( ! empty( $this->client ) ) {
+			return $this->client;
+		}
+
+		// Ensure the AWS SDK can be loaded.
+		if ( ! class_exists( '\\Aws\\Ses\\SesClient' ) ) {
+			// Require AWS Autoloader file.
+			require_once dirname( dirname( __FILE__ ) ) . '/lib/aws-sdk/aws-autoloader.php';
+		}
 
 		$params = array(
-			'version' => '2010-12-01',
+			'version' => 'latest',
 		);
 
 		if ( $this->key && $this->secret ) {
-			$params['key'] = $this->key;
-			$params['secret'] = $this->secret;
+			$params['credentials'] = [
+				'key' => $this->key,
+				'secret' => $this->secret,
+			];
 		}
 
 		if ( $this->region ) {
@@ -198,9 +210,11 @@ class SES {
 		$params = apply_filters( 'aws_ses_wp_mail_ses_client_params', $params );
 
 		try {
-			return \Aws\Common\Aws::factory( $params )->get( 'ses' );
-		} catch( \Exception $e ) {
+			$this->client = SesClient::factory( $params );
+		} catch( Exception $e ) {
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
+
+		return $this->client;
 	}
 }
