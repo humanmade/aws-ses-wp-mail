@@ -169,18 +169,20 @@ class SES {
 	 */
 	public function get_client() {
 		// Ensure the AWS SDK can be loaded.
-		if ( ! class_exists( '\\Aws\\Common\\Aws' ) ) {
+		if ( ! class_exists( '\\Aws\\Ses\\SesClient' ) ) {
 			// Require AWS Autoloader file.
 			require_once dirname( dirname( __FILE__ ) ) . '/lib/aws-sdk/aws-autoloader.php';
 		}
 
 		$params = array(
-			'version' => '2010-12-01',
+			'version' => 'latest',
 		);
 
 		if ( $this->key && $this->secret ) {
-			$params['key'] = $this->key;
-			$params['secret'] = $this->secret;
+			$params['credentials'] = [
+				'key' => $this->key,
+				'secret' => $this->secret,
+			];
 		}
 
 		if ( $this->region ) {
@@ -202,7 +204,7 @@ class SES {
 		$params = apply_filters( 'aws_ses_wp_mail_ses_client_params', $params );
 
 		try {
-			return \Aws\Common\Aws::factory( $params )->get( 'ses' );
+			return \Aws\Ses\SesClient::factory( $params );
 		} catch( \Exception $e ) {
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
