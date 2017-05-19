@@ -36,7 +36,7 @@ define('AWS_SES_WP_MAIL_USE_INSTANCE_PROFILE', true);
 ```
 
 
-The next thing that you should do is to verify your sending domain for SES:
+The next thing that you should do is to verify your sending domain for SES. You can do this via the AWS Console, which will allow you to automatically set headers if your DNS is hosted on Route 53. Alternatively, you can get the required DNS records by running:
 
 ```
 wp aws-ses verify-sending-domain
