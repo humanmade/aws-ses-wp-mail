@@ -44,6 +44,8 @@ wp aws-ses verify-sending-domain
 
 Once you have verified your sending domain, you are all good to go!
 
+**Note:** If you have not used SES in production previously, you need to apply to [move out of the Amazon SES sandbox](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html).
+
 Other Commands
 =======
 
