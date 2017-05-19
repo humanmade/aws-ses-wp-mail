@@ -73,7 +73,14 @@ class SES {
 			if ( strpos( $value, ':' ) ) {
 				$value = array_map( 'trim', explode( ':', $value ) );
 				$headers[ $value[0] ] = $value[1];
-				unset( $headers[ $header ] );
+
+				// Gravity Forms uses an array like
+				// ['Content-Type' => 'Content-Type: text/html']
+				// so we need to ensure we don't accidentally unset the
+				// new header.
+				if ( $header !== $value[0] ) {
+					unset( $headers[ $header ] );
+				}
 			}
 		}
 
