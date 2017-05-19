@@ -1,6 +1,7 @@
 <?php
 
 namespace AWS_SES_WP_Mail;
+
 use WP_CLI;
 use WP_Error;
 
@@ -12,7 +13,26 @@ class WP_CLI_Command extends \WP_CLI_Command {
 	/**
 	 * Send an email via AWS SES
 	 *
-	 * @synopsis <to-email> <subject> <message> [--from-email=<from-email>]
+	 * <to-email>
+	 * : Email address to send to.
+	 *
+	 * <subject>
+	 * : Email subject.
+	 *
+	 * <message>
+	 * : Email message.
+	 *
+	 * [--from-email=<from-email>]
+	 * : Email address to send from.
+	 *
+	 * [--reply-to=<reply-to>]
+	 * : Email address to set as Reply-To.
+	 *
+	 * [--cc=<cc>]
+	 * : Email addresses to CC (comma-separated).
+	 *
+	 * [--bcc=<bcc>]
+	 * : Email addresses to BCC (comma-separated).
 	 */
 	public function send( $args, $args_assoc ) {
 
@@ -21,7 +41,19 @@ class WP_CLI_Command extends \WP_CLI_Command {
 				return $args_assoc['from-email'];
 			});
 		}
-		$result = SES::get_instance()->send_wp_mail( $args[0], $args[1], $args[2] );
+
+		$headers = [];
+		if ( ! empty( $args_assoc['reply-to'] ) ) {
+			$headers['Reply-To'] = $args_assoc['reply-to'];
+		}
+		if ( ! empty( $args_assoc['cc'] ) ) {
+			$headers['CC'] = $args_assoc['cc'];
+		}
+		if ( ! empty( $args_assoc['bcc'] ) ) {
+			$headers['BCC'] = $args_assoc['bcc'];
+		}
+
+		$result = SES::get_instance()->send_wp_mail( $args[0], $args[1], $args[2], $headers );
 
 		if ( is_wp_error( $result ) ) {
 			WP_CLI::error( $result->get_error_code() . ': ' . $result->get_error_message() );
