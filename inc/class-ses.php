@@ -2,6 +2,8 @@
 
 namespace AWS_SES_WP_Mail;
 
+use Aws\Ses\SesClient;
+use Exception;
 use WP_Error;
 
 class SES {
@@ -155,7 +157,7 @@ class SES {
 
 			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
 			$ses->sendEmail( $args );
-		} catch ( \Exception $e ) {
+		} catch ( Exception $e ) {
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
 
@@ -165,7 +167,7 @@ class SES {
 	/**
 	 * Get the client for AWS SES.
 	 *
-	 * @return Aws\Client\Ses|WP_Error
+	 * @return SesClient|WP_Error
 	 */
 	public function get_client() {
 		if ( ! empty( $this->client ) ) {
@@ -208,8 +210,8 @@ class SES {
 		$params = apply_filters( 'aws_ses_wp_mail_ses_client_params', $params );
 
 		try {
-			$this->client = \Aws\Ses\SesClient::factory( $params );
-		} catch( \Exception $e ) {
+			$this->client = SesClient::factory( $params );
+		} catch( Exception $e ) {
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
 
