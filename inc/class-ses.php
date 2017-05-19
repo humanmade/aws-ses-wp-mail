@@ -168,7 +168,11 @@ class SES {
 	 * @return Aws\Client\Ses|WP_Error
 	 */
 	public function get_client() {
-		require_once dirname( dirname( __FILE__ ) ) . '/lib/aws-sdk/aws-autoloader.php';
+		// Ensure the AWS SDK can be loaded.
+		if ( ! class_exists( '\\Aws\\Common\\Aws' ) ) {
+			// Require AWS Autoloader file.
+			require_once dirname( dirname( __FILE__ ) ) . '/lib/aws-sdk/aws-autoloader.php';
+		}
 
 		$params = array(
 			'version' => '2010-12-01',
