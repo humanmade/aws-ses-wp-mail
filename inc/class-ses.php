@@ -155,6 +155,11 @@ class SES {
 				);
 			}
 
+			if ( ! empty( $message_args['headers']['Reply-To'] ) ) {
+				$replyto = explode( ',', $message_args['headers']['Reply-To'] );
+				$args['ReplyToAddresses'] = array_map( 'trim', $replyto );
+			}
+
 			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
 			$ses->sendEmail( $args );
 		} catch ( Exception $e ) {
