@@ -160,6 +160,15 @@ class SES {
 				$args['ReplyToAddresses'] = array_map( 'trim', $replyto );
 			}
 
+			foreach ( [ 'Cc', 'Bcc'] as $type ) {
+				if ( empty( $message_args['headers'][ $type ] ) ) {
+					continue;
+				}
+
+				$addrs = explode( ',', $message_args['headers'][ $type ] );
+				$args['Destination'][ $type . 'Addresses' ] = array_map( 'trim', $addrs );
+			}
+
 			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
 			$ses->sendEmail( $args );
 		} catch ( Exception $e ) {
