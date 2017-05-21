@@ -79,7 +79,7 @@ class SES {
 
 		// normalize header names to Camel-Case
 		foreach ( $headers as $name => $value ) {
-			$uc_name = ucwords( $name, '-' );
+			$uc_name = ucwords( strtolower( $name ), '-' );
 			if ( $uc_name !== $name ) {
 				$headers[ $uc_name ] = $value;
 				unset( $headers[ $name ] );
@@ -153,6 +153,20 @@ class SES {
 					'Data'    => $message_args['html'],
 					'Charset' => get_bloginfo( 'charset' ),
 				);
+			}
+
+			if ( ! empty( $message_args['headers']['Reply-To'] ) ) {
+				$replyto = explode( ',', $message_args['headers']['Reply-To'] );
+				$args['ReplyToAddresses'] = array_map( 'trim', $replyto );
+			}
+
+			foreach ( [ 'Cc', 'Bcc'] as $type ) {
+				if ( empty( $message_args['headers'][ $type ] ) ) {
+					continue;
+				}
+
+				$addrs = explode( ',', $message_args['headers'][ $type ] );
+				$args['Destination'][ $type . 'Addresses' ] = array_map( 'trim', $addrs );
 			}
 
 			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
