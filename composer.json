@@ -1,0 +1,26 @@
+{
+  "name": "humanmade/aws-ses-wp-mail",
+  "description": "WordPress plugin to send mail via SES",
+  "homepage": "https://github.com/humanmade/aws-ses-wp-mail",
+  "keywords": [
+    "wordpress"
+  ],
+  "license": "GPL-2.0+",
+  "authors": [
+    {
+      "name": "Human Made Limited",
+      "email": "support@humanmade.co.uk",
+      "homepage": "http://hmn.md/"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/humanmade/aws-ses-wp-mail/issues",
+    "source": "https://github.com/humanmade/aws-ses-wp-mail"
+  },
+  "type": "wordpress-plugin",
+  "require": {
+    "php": ">=5.3",
+    "composer/installers": "~1.0",
+    "aws/aws-sdk-php": "~3.18"
+  }
+}
