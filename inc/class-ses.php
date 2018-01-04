@@ -177,11 +177,13 @@ class SES {
 			}
 
 			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
-			$ses->sendEmail( $args );
+			$result = $ses->sendEmail( $args );
 		} catch ( Exception $e ) {
+			do_action( 'aws_ses_wp_mail_ses_error_sending_message', $e, $args, $message_args );
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
 
+		do_action( 'aws_ses_wp_mail_ses_sent_message', $result, $args, $message_args );
 		return true;
 	}
 
