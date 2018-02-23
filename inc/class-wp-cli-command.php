@@ -33,6 +33,9 @@ class WP_CLI_Command extends \WP_CLI_Command {
 	 *
 	 * [--bcc=<bcc>]
 	 * : Email addresses to BCC (comma-separated).
+	 *
+	 * [--attachments=<attachments>]
+	 * : Attachments paths(comma-separated).
 	 */
 	public function send( $args, $args_assoc ) {
 
@@ -41,8 +44,8 @@ class WP_CLI_Command extends \WP_CLI_Command {
 				return $args_assoc['from-email'];
 			});
 		}
-
-		$headers = [];
+		$headers     = [];
+		$attachments = [];
 		if ( ! empty( $args_assoc['reply-to'] ) ) {
 			$headers['Reply-To'] = $args_assoc['reply-to'];
 		}
@@ -52,8 +55,11 @@ class WP_CLI_Command extends \WP_CLI_Command {
 		if ( ! empty( $args_assoc['bcc'] ) ) {
 			$headers['BCC'] = $args_assoc['bcc'];
 		}
+		if ( ! empty( $args_assoc['attachments'] ) ) {
+			$attachments = explode( ',', $args_assoc['attachments'] );
+		}
 
-		$result = SES::get_instance()->send_wp_mail( $args[0], $args[1], $args[2], $headers );
+		$result = SES::get_instance()->send_wp_mail( $args[0], $args[1], $args[2], $headers, $attachments );
 
 		if ( is_wp_error( $result ) ) {
 			WP_CLI::error( $result->get_error_code() . ': ' . $result->get_error_message() );

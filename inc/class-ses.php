@@ -41,10 +41,8 @@ class SES {
 	 * using the AWS SDK.
 	 *
 	 * @todo support cc, bcc
-	 * @todo support attachments
 	 * @since  0.0.1
 	 * @access public
-	 * @todo   Add support for attachments
 	 * @param  string $to
 	 * @param  string $subject
 	 * @param  string $message
@@ -134,57 +132,232 @@ class SES {
 		}
 
 		try {
-			$args = array(
-				'Source'      => $message_args['headers']['From'],
-				'Destination' => array(
-					'ToAddresses' => $message_args['to']
-				),
-				'Message'     => array(
-					'Subject' => array(
-						'Data'    => $message_args['subject'],
-						'Charset' => get_bloginfo( 'charset' ),
+			$args = array();
+			if ( ! empty( $attachments ) ) {
+				$args = array(
+					'RawMessage' => array(
+						'Data' => $this->get_raw_message( $to, $subject, $message, $headers, $attachments ),
 					),
-					'Body'   => array(),
-				),
-			);
-
-			if ( isset( $message_args['text'] ) ) {
-				$args['Message']['Body']['Text'] = array(
-					'Data'    => $message_args['text'],
-					'Charset' => get_bloginfo( 'charset' ),
 				);
-			}
 
-			if ( isset( $message_args['html'] ) ) {
-				$args['Message']['Body']['Html'] = array(
-					'Data'    => $message_args['html'],
-					'Charset' => get_bloginfo( 'charset' ),
+				$args = apply_filters( 'aws_ses_wp_mail_ses_send_raw_message_args', $args, $to, $subject, $message, $headers, $attachments );
+
+				$result = $ses->sendRawEmail( $args );
+			} else {
+				$args = array(
+					'Source'      => $message_args['headers']['From'],
+					'Destination' => array(
+						'ToAddresses' => $message_args['to']
+					),
+					'Message'     => array(
+						'Subject' => array(
+							'Data'    => $message_args['subject'],
+							'Charset' => get_bloginfo( 'charset' ),
+						),
+						'Body'    => array(),
+					),
 				);
-			}
 
-			if ( ! empty( $message_args['headers']['Reply-To'] ) ) {
-				$replyto = explode( ',', $message_args['headers']['Reply-To'] );
-				$args['ReplyToAddresses'] = array_map( 'trim', $replyto );
-			}
-
-			foreach ( [ 'Cc', 'Bcc'] as $type ) {
-				if ( empty( $message_args['headers'][ $type ] ) ) {
-					continue;
+				if ( isset( $message_args['text'] ) ) {
+					$args['Message']['Body']['Text'] = array(
+						'Data'    => $message_args['text'],
+						'Charset' => get_bloginfo( 'charset' ),
+					);
 				}
 
-				$addrs = explode( ',', $message_args['headers'][ $type ] );
-				$args['Destination'][ $type . 'Addresses' ] = array_map( 'trim', $addrs );
-			}
+				if ( isset( $message_args['html'] ) ) {
+					$args['Message']['Body']['Html'] = array(
+						'Data'    => $message_args['html'],
+						'Charset' => get_bloginfo( 'charset' ),
+					);
+				}
 
-			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
-			$result = $ses->sendEmail( $args );
+				if ( ! empty( $message_args['headers']['Reply-To'] ) ) {
+					$replyto                  = explode( ',', $message_args['headers']['Reply-To'] );
+					$args['ReplyToAddresses'] = array_map( 'trim', $replyto );
+				}
+
+				foreach ( [ 'Cc', 'Bcc' ] as $type ) {
+					if ( empty( $message_args['headers'][ $type ] ) ) {
+						continue;
+					}
+
+					$addrs                                      = explode( ',', $message_args['headers'][ $type ] );
+					$args['Destination'][ $type . 'Addresses' ] = array_map( 'trim', $addrs );
+				}
+
+				$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
+
+
+				$result = $ses->sendEmail( $args );
+			}
 		} catch ( Exception $e ) {
 			do_action( 'aws_ses_wp_mail_ses_error_sending_message', $e, $args, $message_args );
+
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
 
 		do_action( 'aws_ses_wp_mail_ses_sent_message', $result, $args, $message_args );
+
 		return true;
+	}
+
+	/**
+	 * Generate raw multipart email string.
+	 *
+	 * @param array|string $to
+	 * @param string $subject
+	 * @param string $message
+	 * @param array $headers
+	 * @param array $attachments
+	 *
+	 * @return string
+	 */
+	private function get_raw_message( $to, $subject, $message, $headers = array(), $attachments = array() ) {
+		// Initial headers
+		$custom_from        = false;
+		$raw_message_header = '';
+
+		$cc = $bcc = $reply_to = array();
+
+		// Filter initial content type, if custom header present then it will overwrite it.
+		$content_type = apply_filters( 'wp_mail_content_type', 'text/plain' );
+
+		if ( ! empty( $headers ) ) {
+			// Iterate through the raw headers
+			foreach ( $headers as $name => $content ) {
+				$name    = trim( $name );
+				$content = trim( $content );
+				switch ( strtolower( $name ) ) {
+					case 'from':
+						// Gravity forms allow custom from header, so it will overwrite the from value.
+						$custom_from = $content;
+						break;
+					case 'content-type':
+						//if content-type header present and contains charset details, extract it for multipart.
+						if ( strpos( $content, ';' ) !== false ) {
+							list( $type, $charset_content ) = explode( ';', $content );
+							$content_type = trim( $type );
+							if ( false !== stripos( $charset_content, 'charset=' ) ) {
+								$charset = trim( str_replace( array( 'charset=', '"' ), '', $charset_content ) );
+							} elseif ( false !== stripos( $charset_content, 'boundary=' ) ) {
+								$boundary = trim( str_replace( array(
+									'BOUNDARY=',
+									'boundary=',
+									'"'
+								), '', $charset_content ) );
+								$charset  = '';
+							}
+						} elseif ( '' !== trim( $content ) ) {
+							$content_type = trim( $content );
+						}
+						break;
+					case 'cc':
+						$cc = array_merge( (array) $cc, explode( ',', $content ) );
+						break;
+					case 'bcc':
+						$bcc = array_merge( (array) $bcc, explode( ',', $content ) );
+						break;
+					case 'reply-to':
+						$reply_to = array_merge( (array) $reply_to, explode( ',', $content ) );
+						break;
+					default:
+						$raw_message_header .= $name . ': ' . $content . "\n";
+						break;
+				}
+			}
+		}
+
+		// Get the site domain and get rid of www.
+		$sitename = strtolower( parse_url( site_url(), PHP_URL_HOST ) );
+		if ( 'www.' === substr( $sitename, 0, 4 ) ) {
+			$sitename = substr( $sitename, 4 );
+		}
+
+		$from_email = 'wordpress@' . $sitename;
+
+		// If custom from address is not present in header, generate it.
+		if ( ! $custom_from ) {
+			$custom_from = sprintf( '%s <%s>', apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) ), apply_filters( 'wp_mail_from', $from_email ) );
+		}
+
+		$boundary    = uniqid( rand(), true );
+		$raw_message = $raw_message_header;
+		$raw_message .= 'To: ' . $this->trim_recipients( $to ) . "\n";
+		$raw_message .= 'From: ' . $custom_from . "\n";
+		$raw_message .= 'Reply-To: ' . $this->trim_recipients( $reply_to ) . "\n";
+
+		if ( ! empty( $cc ) ) {
+			$raw_message .= 'CC: ' . $this->trim_recipients( $cc ) . "\n";
+		}
+		if ( ! empty( $bcc ) ) {
+			$raw_message .= 'BCC: ' . $this->trim_recipients( $bcc ) . "\n";
+		}
+
+		if ( $subject != null && strlen( $subject ) > 0 ) {
+			$raw_message .= 'Subject: ' . $subject . "\n";
+		}
+
+		$raw_message .= 'MIME-Version: 1.0' . "\n";
+		$raw_message .= 'Content-type: Multipart/Mixed; boundary="' . $boundary . '"' . "\n";
+		$raw_message .= "\n--{$boundary}\n";
+		$raw_message .= 'Content-type: Multipart/Alternative; boundary="alt-' . $boundary . '"' . "\n";
+
+		if ( $content_type && strpos( $content_type, 'text/plain' ) === false && strlen( $message ) > 0 ) {
+			$charset     = empty( $charset ) ? '' : "; charset=\"{$charset}\"";
+			$raw_message .= "\n--alt-{$boundary}\n";
+			$raw_message .= 'Content-Type: text/html' . $charset . "\n\n";
+			$raw_message .= $message . "\n";
+		} else if ( strlen( $message ) > 0 ) {
+			$charset     = empty( $charset ) ? '' : "; charset=\"{$charset}\"";
+			$raw_message .= "\n--alt-{$boundary}\n";
+			$raw_message .= 'Content-Type: text/plain' . $charset . "\n\n";
+			$raw_message .= $message . "\n";
+		}
+		$raw_message .= "\n--alt-{$boundary}--\n";
+
+		foreach ( $attachments as $attachment ) {
+			if ( ! @is_file( $attachment ) ) {
+				continue;
+			}
+
+			$filename = basename( $attachment );
+
+			$data = file_get_contents( $attachment );
+
+			$file_type = wp_check_filetype( $filename );
+
+			// If mime type is not present, set it as octet-stream
+			if ( ! $file_type['type'] ) {
+				$file_type['type'] = 'application/octet-stream';
+			}
+
+			$raw_message .= "\n--{$boundary}\n";
+			$raw_message .= 'Content-Type: ' . $file_type['type'] . '; name="' . $filename . '"' . "\n";
+			$raw_message .= 'Content-Disposition: attachment' . "\n";
+			$raw_message .= 'Content-Transfer-Encoding: base64' . "\n";
+			$raw_message .= "\n" . chunk_split( base64_encode( $data ), 76, "\n" ) . "\n";
+		}
+
+		$raw_message .= "\n--{$boundary}--\n";
+
+		return $raw_message;
+	}
+
+
+	/**
+	 * Trim recipients addresses.
+	 *
+	 * @param  string|array $recipient Single recipient or array of recipients
+	 *
+	 * @return string            Trimmed recipients joined with comma
+	 */
+	public function trim_recipients( $recipient ) {
+		if ( is_array( $recipient ) ) {
+			return join( ', ', array_map( array( $this, 'trim_recipients' ), $recipient ) );
+		}
+
+		return trim( $recipient );
 	}
 
 	/**
