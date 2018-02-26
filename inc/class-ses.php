@@ -334,14 +334,14 @@ class SES {
 				$file_type['type'] = 'application/octet-stream';
 			}
 
-			$raw_message .= "\n--{$boundary}\n";
+			$raw_message .= sprintf( "\n--%s\n", $boundary );
 			$raw_message .= sprintf( 'Content-Type: %1$s; name="%2$s"', $file_type['type'], esc_attr( $filename ) ) . "\n";
 			$raw_message .= 'Content-Disposition: attachment' . "\n";
 			$raw_message .= 'Content-Transfer-Encoding: base64' . "\n";
 			$raw_message .= "\n" . chunk_split( base64_encode( $data ), 76, "\n" ) . "\n";
 		}
 
-		$raw_message .= "\n--{$boundary}--\n";
+		$raw_message .= sprintf( "\n--%s--\n", $boundary );
 
 		return $raw_message;
 	}
