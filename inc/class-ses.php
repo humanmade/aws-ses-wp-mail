@@ -213,7 +213,7 @@ class SES {
 	 *
 	 * @return string
 	 */
-	private function get_raw_message( $to, $subject, $message, $headers = array(), $attachments = array() ) {
+	protected function get_raw_message( $to, $subject, $message, $headers = array(), $attachments = array() ) {
 		// Initial headers
 		$custom_from        = false;
 		$raw_message_header = '';
@@ -262,7 +262,11 @@ class SES {
 						$reply_to = array_merge( (array) $reply_to, explode( ',', $content ) );
 						break;
 					default:
-						$raw_message_header .= $name . ': ' . $content . "\n";
+						$raw_message_header .= $name . ': ' . str_replace( array(
+								"\r\n",
+								"\r",
+								"\n"
+							), "", $content ) . "\n";
 						break;
 				}
 			}
@@ -280,8 +284,7 @@ class SES {
 		if ( ! $custom_from ) {
 			$custom_from = sprintf( '%s <%s>', apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) ), apply_filters( 'wp_mail_from', $from_email ) );
 		}
-
-		$boundary    = uniqid( rand(), true );
+		$boundary    = 'aws-ses-wp-mail-' . wp_rand();
 		$raw_message = $raw_message_header;
 		$raw_message .= 'To: ' . $this->trim_recipients( $to ) . "\n";
 		$raw_message .= 'From: ' . $custom_from . "\n";
@@ -299,25 +302,24 @@ class SES {
 		}
 
 		$raw_message .= 'MIME-Version: 1.0' . "\n";
-		$raw_message .= 'Content-type: Multipart/Mixed; boundary="' . $boundary . '"' . "\n";
-		$raw_message .= "\n--{$boundary}\n";
-		$raw_message .= 'Content-type: Multipart/Alternative; boundary="alt-' . $boundary . '"' . "\n";
+		$raw_message .= sprintf( 'Content-Type: Multipart/Mixed; boundary="%s"', esc_attr( $boundary ) ) . "\n";
+		$raw_message .= sprintf( "\n--%s\n", $boundary );
+		$raw_message .= sprintf( 'Content-Type: Multipart/Alternative; boundary="alt-%s"', $boundary ) . "\n";
 
+		$charset = empty( $charset ) ? '' : sprintf( '; charset="%s";', esc_attr( $charset ) );
 		if ( $content_type && strpos( $content_type, 'text/plain' ) === false && strlen( $message ) > 0 ) {
-			$charset     = empty( $charset ) ? '' : "; charset=\"{$charset}\"";
-			$raw_message .= "\n--alt-{$boundary}\n";
-			$raw_message .= 'Content-Type: text/html' . $charset . "\n\n";
+			$raw_message .= sprintf( "\n--alt-%s\n", $boundary );
+			$raw_message .= sprintf( 'Content-Type: text/html%s', $charset ) . "\n\n";
 			$raw_message .= $message . "\n";
 		} else if ( strlen( $message ) > 0 ) {
-			$charset     = empty( $charset ) ? '' : "; charset=\"{$charset}\"";
-			$raw_message .= "\n--alt-{$boundary}\n";
-			$raw_message .= 'Content-Type: text/plain' . $charset . "\n\n";
+			$raw_message .= sprintf( "\n--alt-%s\n", $boundary );
+			$raw_message .= sprintf( 'Content-Type: text/plain%s', $charset ) . "\n\n";
 			$raw_message .= $message . "\n";
 		}
-		$raw_message .= "\n--alt-{$boundary}--\n";
+		$raw_message .= sprintf( "\n--alt-%s--\n", $boundary );
 
 		foreach ( $attachments as $attachment ) {
-			if ( ! @is_file( $attachment ) ) {
+			if ( ! file_exists( $attachment ) ) {
 				continue;
 			}
 
@@ -333,7 +335,7 @@ class SES {
 			}
 
 			$raw_message .= "\n--{$boundary}\n";
-			$raw_message .= 'Content-Type: ' . $file_type['type'] . '; name="' . $filename . '"' . "\n";
+			$raw_message .= sprintf( 'Content-Type: %1$s; name="%2$s"', $file_type['type'], esc_attr( $filename ) ) . "\n";
 			$raw_message .= 'Content-Disposition: attachment' . "\n";
 			$raw_message .= 'Content-Transfer-Encoding: base64' . "\n";
 			$raw_message .= "\n" . chunk_split( base64_encode( $data ), 76, "\n" ) . "\n";
