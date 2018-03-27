@@ -3,7 +3,7 @@
  * Plugin Name:  AWS SES wp_mail drop-in
  * Plugin URI:   https://github.com/humanmade/aws-ses-wp-mail
  * Description:  Drop-in replacement for wp_mail using the AWS SES.
- * Version:      0.1.0
+ * Version:      0.1.1
  * Author:       Joe Hoyle | Human Made
  * Author URI:   https://github.com/humanmade
  * License:      GPL-2.0+
