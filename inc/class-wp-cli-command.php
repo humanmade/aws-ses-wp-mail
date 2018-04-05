@@ -33,16 +33,21 @@ class WP_CLI_Command extends \WP_CLI_Command {
 	 *
 	 * [--bcc=<bcc>]
 	 * : Email addresses to BCC (comma-separated).
+	 *
+	 * [--attachments=<attachments>]
+	 * : Attachments paths(comma-separated).
 	 */
 	public function send( $args, $args_assoc ) {
 
 		if ( ! empty( $args_assoc['from-email'] ) ) {
-			add_filter( 'wp_mail_from', function() use ( $args_assoc ) {
+			add_filter( 'wp_mail_from', function () use ( $args_assoc ) {
 				return $args_assoc['from-email'];
-			});
+			} );
 		}
 
-		$headers = [];
+		$headers     = [];
+		$attachments = [];
+
 		if ( ! empty( $args_assoc['reply-to'] ) ) {
 			$headers['Reply-To'] = $args_assoc['reply-to'];
 		}
@@ -53,10 +58,15 @@ class WP_CLI_Command extends \WP_CLI_Command {
 			$headers['BCC'] = $args_assoc['bcc'];
 		}
 
-		$result = SES::get_instance()->send_wp_mail( $args[0], $args[1], $args[2], $headers );
+		if ( ! empty( $args_assoc['attachments'] ) ) {
+			$attachments = explode( ',', $args_assoc['attachments'] );
+		}
 
-		if ( is_wp_error( $result ) ) {
-			WP_CLI::error( $result->get_error_code() . ': ' . $result->get_error_message() );
+		$result = wp_mail( $args[0], $args[1], $args[2], $headers, $attachments );
+
+		if ( ! $result ) {
+			global $phpmailer;
+			WP_CLI::error( $phpmailer->ErrorInfo );
 		}
 
 		WP_CLI::success( 'Sent.' );
@@ -97,14 +107,14 @@ class WP_CLI_Command extends \WP_CLI_Command {
 		try {
 			$verify = $ses->verifyDomainIdentity( array(
 				'Domain' => $domain,
-			));
+			) );
 		} catch ( \Exception $e ) {
 			WP_CLI::error( get_class( $e ) . ': ' . $e->getMessage() );
 		}
 
 		$dkim = $ses->verifyDomainDkim( array(
 			'Domain' => $domain,
-		));
+		) );
 
 		$dns_records[] = array(
 			'Domain' => '_amazonses.' . $domain,
