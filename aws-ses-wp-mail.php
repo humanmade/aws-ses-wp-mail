@@ -14,25 +14,11 @@ if ( ( ! defined( 'AWS_SES_WP_MAIL_KEY' ) || ! defined( 'AWS_SES_WP_MAIL_SECRET'
 	return;
 }
 
-require_once dirname( __FILE__ ) . '/inc/class-ses.php';
+require_once dirname( __FILE__ ) . '/inc/namespace.php';
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once dirname( __FILE__ ) . '/inc/class-wp-cli-command.php';
 	WP_CLI::add_command( 'aws-ses', 'AWS_SES_WP_Mail\\WP_CLI_Command' );
 }
 
-if ( ! function_exists( 'wp_mail' ) ) :
-function wp_mail( $to, $subject, $message, $headers = '', $attachments = array() ) {
-	$result = AWS_SES_WP_Mail\SES::get_instance()->send_wp_mail( $to, $subject, $message, $headers, $attachments );
-
-	if ( is_wp_error( $result ) ) {
-		trigger_error(
-			sprintf( 'Sendmail SES Email failed: %d %s', $result->get_error_code(), $result->get_error_message() ),
-			E_USER_WARNING
-		);
-		return false;
-	}
-
-	return $result;
-}
-endif;
+add_action( 'plugins_loaded', '\\AWS_SES_WP_Mail\\bootstrap' );
