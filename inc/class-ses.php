@@ -99,7 +99,7 @@ class SES {
 			$sitename = substr( $sitename, 4 );
 		}
 
-		$from_email = 'wordpress@' . $sitename;
+		$from_email = 'no-reply@' . $sitename;
 
 		$message_args = array(
 			// Email
