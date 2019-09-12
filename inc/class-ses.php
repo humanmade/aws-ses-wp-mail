@@ -197,12 +197,6 @@ class SES {
 			return $this->client;
 		}
 
-		// Ensure the AWS SDK can be loaded.
-		if ( ! class_exists( '\\Aws\\Ses\\SesClient' ) ) {
-			// Require AWS Autoloader file.
-			require_once dirname( dirname( __FILE__ ) ) . '/lib/aws-sdk/aws-autoloader.php';
-		}
-
 		$params = array(
 			'version' => 'latest',
 		);
