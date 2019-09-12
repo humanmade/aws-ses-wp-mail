@@ -55,7 +55,7 @@ class SES {
 	public function send_wp_mail( $to, $subject, $message, $headers = [], $attachments = [] ) {
 
 		// Compact the input, apply the filters, and extract them back out
-		extract( apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) ) );
+		extract( apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) ) ); // @codingStandardsIgnoreLine
 
 		// Get headers as array
 		if ( empty( $headers ) ) {
@@ -94,7 +94,7 @@ class SES {
 		}
 
 		// Get the site domain and get rid of www.
-		$sitename = strtolower( parse_url( site_url(), PHP_URL_HOST ) );
+		$sitename = strtolower( wp_parse_url( site_url(), PHP_URL_HOST ) );
 		if ( 'www.' === substr( $sitename, 0, 4 ) ) {
 			$sitename = substr( $sitename, 4 );
 		}

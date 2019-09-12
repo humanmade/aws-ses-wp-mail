@@ -1,4 +1,4 @@
-<?php
+<?php // @codingStandardsIgnoreLine
 /**
  * Plugin Name:  AWS SES wp_mail drop-in
  * Plugin URI:   https://github.com/humanmade/aws-ses-wp-mail

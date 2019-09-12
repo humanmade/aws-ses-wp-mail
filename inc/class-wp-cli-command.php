@@ -72,7 +72,7 @@ class WP_CLI_Command extends \WP_CLI_Command {
 	public function verify_sending_domain( $args, $args_assoc ) {
 
 		// Get the site domain and get rid of www.
-		$domain = strtolower( parse_url( site_url(), PHP_URL_HOST ) );
+		$domain = strtolower( wp_parse_url( site_url(), PHP_URL_HOST ) );
 		if ( 'www.' === substr( $domain, 0, 4 ) ) {
 			$domain = substr( $domain, 4 );
 		}
