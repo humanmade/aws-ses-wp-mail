@@ -14,6 +14,7 @@ if ( ( ! defined( 'AWS_SES_WP_MAIL_KEY' ) || ! defined( 'AWS_SES_WP_MAIL_SECRET'
 	return;
 }
 
+require_once dirname( __FILE__ ) . '/vendor/autoload.php';
 require_once dirname( __FILE__ ) . '/inc/class-ses.php';
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
