@@ -52,14 +52,14 @@ class SES {
 	 * @param  array $attachments
 	 * @return bool true if mail has been sent, false if it failed
 	 */
-	public function send_wp_mail( $to, $subject, $message, $headers = array(), $attachments = array() ) {
+	public function send_wp_mail( $to, $subject, $message, $headers = [], $attachments = [] ) {
 
 		// Compact the input, apply the filters, and extract them back out
-		extract( apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) ) );
+		extract( apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) ) ); // @codingStandardsIgnoreLine
 
 		// Get headers as array
 		if ( empty( $headers ) ) {
-			$headers = array();
+			$headers = [];
 		}
 
 		if ( ! is_array( $headers ) ) {
@@ -94,22 +94,22 @@ class SES {
 		}
 
 		// Get the site domain and get rid of www.
-		$sitename = strtolower( parse_url( site_url(), PHP_URL_HOST ) );
+		$sitename = strtolower( wp_parse_url( site_url(), PHP_URL_HOST ) );
 		if ( 'www.' === substr( $sitename, 0, 4 ) ) {
 			$sitename = substr( $sitename, 4 );
 		}
 
 		$from_email = 'no-reply@' . $sitename;
 
-		$message_args = array(
+		$message_args = [
 			// Email
 			'subject'                    => $subject,
 			'to'                         => $to,
-			'headers'                    => array(
+			'headers'                    => [
 				'Content-Type'           => apply_filters( 'wp_mail_content_type', 'text/plain' ),
 				'From'                   => sprintf( '"%s" <%s>', apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) ), apply_filters( 'wp_mail_from', $from_email ) ),
-			),
-		);
+			],
+		];
 		$message_args['headers'] = array_merge( $message_args['headers'], $headers );
 		$message_args = apply_filters( 'aws_ses_wp_mail_pre_message_args', $message_args );
 
@@ -134,32 +134,32 @@ class SES {
 		}
 
 		try {
-			$args = array(
+			$args = [
 				'Source'      => $message_args['headers']['From'],
-				'Destination' => array(
-					'ToAddresses' => $message_args['to']
-				),
-				'Message'     => array(
-					'Subject' => array(
+				'Destination' => [
+					'ToAddresses' => $message_args['to'],
+				],
+				'Message'     => [
+					'Subject' => [
 						'Data'    => $message_args['subject'],
 						'Charset' => get_bloginfo( 'charset' ),
-					),
-					'Body'   => array(),
-				),
-			);
+					],
+					'Body'   => [],
+				],
+			];
 
 			if ( isset( $message_args['text'] ) ) {
-				$args['Message']['Body']['Text'] = array(
+				$args['Message']['Body']['Text'] = [
 					'Data'    => $message_args['text'],
 					'Charset' => get_bloginfo( 'charset' ),
-				);
+				];
 			}
 
 			if ( isset( $message_args['html'] ) ) {
-				$args['Message']['Body']['Html'] = array(
+				$args['Message']['Body']['Html'] = [
 					'Data'    => $message_args['html'],
 					'Charset' => get_bloginfo( 'charset' ),
-				);
+				];
 			}
 
 			if ( ! empty( $message_args['headers']['Reply-To'] ) ) {
@@ -167,7 +167,7 @@ class SES {
 				$args['ReplyToAddresses'] = array_map( 'trim', $replyto );
 			}
 
-			foreach ( [ 'Cc', 'Bcc'] as $type ) {
+			foreach ( [ 'Cc', 'Bcc' ] as $type ) {
 				if ( empty( $message_args['headers'][ $type ] ) ) {
 					continue;
 				}
@@ -197,9 +197,9 @@ class SES {
 			return $this->client;
 		}
 
-		$params = array(
+		$params = [
 			'version' => 'latest',
-		);
+		];
 
 		if ( $this->key && $this->secret ) {
 			$params['credentials'] = [
@@ -228,7 +228,7 @@ class SES {
 
 		try {
 			$this->client = SesClient::factory( $params );
-		} catch( Exception $e ) {
+		} catch ( Exception $e ) {
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
 
