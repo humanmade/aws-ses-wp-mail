@@ -46,18 +46,18 @@ class SES {
 	 * @param  string $to
 	 * @param  string $subject
 	 * @param  string $message
-	 * @param  mixed $headers
-	 * @param  array $attachments
+	 * @param  mixed  $headers
+	 * @param  array  $attachments
 	 * @return bool true if mail has been sent, false if it failed
 	 */
-	public function send_wp_mail( $to, $subject, $message, $headers = array(), $attachments = array() ) {
+	public function send_wp_mail( $to, $subject, $message, $headers = [], $attachments = [] ) {
 
 		// Compact the input, apply the filters, and extract them back out
-		extract( apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) ) );
+		extract( apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) ) ); // @codingStandardsIgnoreLine
 
 		// Get headers as array
 		if ( empty( $headers ) ) {
-			$headers = array();
+			$headers = [];
 		}
 
 		if ( ! is_array( $headers ) ) {
@@ -92,22 +92,22 @@ class SES {
 		}
 
 		// Get the site domain and get rid of www.
-		$sitename = strtolower( parse_url( site_url(), PHP_URL_HOST ) );
+		$sitename = strtolower( wp_parse_url( site_url(), PHP_URL_HOST ) );
 		if ( 'www.' === substr( $sitename, 0, 4 ) ) {
 			$sitename = substr( $sitename, 4 );
 		}
 
-		$from_email = 'wordpress@' . $sitename;
+		$from_email = 'no-reply@' . $sitename;
 
-		$message_args = array(
+		$message_args = [
 			// Email
-			'subject'                    => $subject,
-			'to'                         => $to,
-			'headers'                    => array(
-				'Content-Type'           => apply_filters( 'wp_mail_content_type', 'text/plain' ),
-				'From'                   => sprintf( '%s <%s>', apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) ), apply_filters( 'wp_mail_from', $from_email ) ),
-			),
-		);
+			'subject' => $subject,
+			'to'      => $to,
+			'headers' => [
+				'Content-Type' => apply_filters( 'wp_mail_content_type', 'text/plain' ),
+				'From'         => sprintf( '"%s" <%s>', apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) ), apply_filters( 'wp_mail_from', $from_email ) ),
+			],
+		];
 		$message_args['headers'] = array_merge( $message_args['headers'], $headers );
 		$message_args = apply_filters( 'aws_ses_wp_mail_pre_message_args', $message_args );
 
@@ -132,44 +132,44 @@ class SES {
 		}
 
 		try {
-			$args = array();
+			$args = [];
 			if ( ! empty( $attachments ) ) {
-				$args = array(
-					'RawMessage' => array(
+				$args = [
+					'RawMessage' => [
 						'Data' => $this->get_raw_message( $to, $subject, $message, $headers, $attachments ),
-					),
-				);
+					],
+				];
 
 				$args = apply_filters( 'aws_ses_wp_mail_ses_send_raw_message_args', $args, $to, $subject, $message, $headers, $attachments );
 
 				$result = $ses->sendRawEmail( $args );
 			} else {
-				$args = array(
+				$args = [
 					'Source'      => $message_args['headers']['From'],
-					'Destination' => array(
-						'ToAddresses' => $message_args['to']
-					),
-					'Message'     => array(
-						'Subject' => array(
+					'Destination' => [
+						'ToAddresses' => $message_args['to'],
+					],
+					'Message'     => [
+						'Subject' => [
 							'Data'    => $message_args['subject'],
 							'Charset' => get_bloginfo( 'charset' ),
-						),
-						'Body'    => array(),
-					),
-				);
+						],
+						'Body'    => [],
+					],
+				];
 
 				if ( isset( $message_args['text'] ) ) {
-					$args['Message']['Body']['Text'] = array(
+					$args['Message']['Body']['Text'] = [
 						'Data'    => $message_args['text'],
 						'Charset' => get_bloginfo( 'charset' ),
-					);
+					];
 				}
 
 				if ( isset( $message_args['html'] ) ) {
-					$args['Message']['Body']['Html'] = array(
+					$args['Message']['Body']['Html'] = [
 						'Data'    => $message_args['html'],
 						'Charset' => get_bloginfo( 'charset' ),
-					);
+					];
 				}
 
 				if ( ! empty( $message_args['headers']['Reply-To'] ) ) {
@@ -188,7 +188,6 @@ class SES {
 
 				$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
 
-
 				$result = $ses->sendEmail( $args );
 			}
 		} catch ( Exception $e ) {
@@ -206,19 +205,19 @@ class SES {
 	 * Generate raw multipart email string.
 	 *
 	 * @param array|string $to
-	 * @param string $subject
-	 * @param string $message
-	 * @param array $headers
-	 * @param array $attachments
+	 * @param string       $subject
+	 * @param string       $message
+	 * @param array        $headers
+	 * @param array        $attachments
 	 *
 	 * @return string
 	 */
-	protected function get_raw_message( $to, $subject, $message, $headers = array(), $attachments = array() ) {
+	protected function get_raw_message( $to, $subject, $message, $headers = [], $attachments = [] ) {
 		// Initial headers
 		$custom_from        = false;
 		$raw_message_header = '';
 
-		$cc = $bcc = $reply_to = array();
+		$cc = $bcc = $reply_to = [];
 
 		// Filter initial content type, if custom header present then it will overwrite it.
 		$content_type = apply_filters( 'wp_mail_content_type', 'text/plain' );
@@ -234,18 +233,24 @@ class SES {
 						$custom_from = $content;
 						break;
 					case 'content-type':
-						//if content-type header present and contains charset details, extract it for multipart.
+						// if content-type header present and contains charset details, extract it for multipart.
 						if ( strpos( $content, ';' ) !== false ) {
 							list( $type, $charset_content ) = explode( ';', $content );
-							$content_type = trim( $type );
+							$content_type                   = trim( $type );
 							if ( false !== stripos( $charset_content, 'charset=' ) ) {
-								$charset = trim( str_replace( array( 'charset=', '"' ), '', $charset_content ) );
+								$charset = trim( str_replace( [ 'charset=', '"' ], '', $charset_content ) );
 							} elseif ( false !== stripos( $charset_content, 'boundary=' ) ) {
-								$boundary = trim( str_replace( array(
-									'BOUNDARY=',
-									'boundary=',
-									'"'
-								), '', $charset_content ) );
+								$boundary = trim(
+									str_replace(
+										[
+											'BOUNDARY=',
+											'boundary=',
+											'"',
+										],
+										'',
+										$charset_content
+									)
+								);
 								$charset  = '';
 							}
 						} elseif ( '' !== trim( $content ) ) {
@@ -262,11 +267,15 @@ class SES {
 						$reply_to = array_merge( (array) $reply_to, explode( ',', $content ) );
 						break;
 					default:
-						$raw_message_header .= $name . ': ' . str_replace( array(
+						$raw_message_header .= $name . ': ' . str_replace(
+							[
 								"\r\n",
 								"\r",
-								"\n"
-							), "", $content ) . "\n";
+								"\n",
+							],
+							'',
+							$content
+						) . "\n";
 						break;
 				}
 			}
@@ -284,8 +293,8 @@ class SES {
 		if ( ! $custom_from ) {
 			$custom_from = sprintf( '%s <%s>', apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) ), apply_filters( 'wp_mail_from', $from_email ) );
 		}
-		$boundary    = 'aws-ses-wp-mail-' . wp_rand();
-		$raw_message = $raw_message_header;
+		$boundary     = 'aws-ses-wp-mail-' . wp_rand();
+		$raw_message  = $raw_message_header;
 		$raw_message .= 'To: ' . $this->trim_recipients( $to ) . "\n";
 		$raw_message .= 'From: ' . $custom_from . "\n";
 		$raw_message .= 'Reply-To: ' . $this->trim_recipients( $reply_to ) . "\n";
@@ -311,7 +320,7 @@ class SES {
 			$raw_message .= sprintf( "\n--alt-%s\n", $boundary );
 			$raw_message .= sprintf( 'Content-Type: text/html%s', $charset ) . "\n\n";
 			$raw_message .= $message . "\n";
-		} else if ( strlen( $message ) > 0 ) {
+		} elseif ( strlen( $message ) > 0 ) {
 			$raw_message .= sprintf( "\n--alt-%s\n", $boundary );
 			$raw_message .= sprintf( 'Content-Type: text/plain%s', $charset ) . "\n\n";
 			$raw_message .= $message . "\n";
@@ -346,7 +355,6 @@ class SES {
 		return $raw_message;
 	}
 
-
 	/**
 	 * Trim recipients addresses.
 	 *
@@ -356,7 +364,7 @@ class SES {
 	 */
 	public function trim_recipients( $recipient ) {
 		if ( is_array( $recipient ) ) {
-			return join( ', ', array_map( array( $this, 'trim_recipients' ), $recipient ) );
+			return join( ', ', array_map( [ $this, 'trim_recipients' ], $recipient ) );
 		}
 
 		return trim( $recipient );
@@ -372,15 +380,9 @@ class SES {
 			return $this->client;
 		}
 
-		// Ensure the AWS SDK can be loaded.
-		if ( ! class_exists( '\\Aws\\Ses\\SesClient' ) ) {
-			// Require AWS Autoloader file.
-			require_once dirname( dirname( __FILE__ ) ) . '/lib/aws-sdk/aws-autoloader.php';
-		}
-
-		$params = array(
+		$params = [
 			'version' => 'latest',
-		);
+		];
 
 		if ( $this->key && $this->secret ) {
 			$params['credentials'] = [
@@ -409,7 +411,7 @@ class SES {
 
 		try {
 			$this->client = SesClient::factory( $params );
-		} catch( Exception $e ) {
+		} catch ( Exception $e ) {
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
 

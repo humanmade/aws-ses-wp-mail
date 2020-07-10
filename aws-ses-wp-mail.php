@@ -1,9 +1,9 @@
-<?php
+<?php // @codingStandardsIgnoreLine
 /**
  * Plugin Name:  AWS SES wp_mail drop-in
  * Plugin URI:   https://github.com/humanmade/aws-ses-wp-mail
  * Description:  Drop-in replacement for wp_mail using the AWS SES.
- * Version:      0.1.0
+ * Version:      0.1.1
  * Author:       Joe Hoyle | Human Made
  * Author URI:   https://github.com/humanmade
  * License:      GPL-2.0+
@@ -22,17 +22,17 @@ if ( defined( 'WP_CLI' ) && WP_CLI ) {
 }
 
 if ( ! function_exists( 'wp_mail' ) ) :
-function wp_mail( $to, $subject, $message, $headers = '', $attachments = array() ) {
-	$result = AWS_SES_WP_Mail\SES::get_instance()->send_wp_mail( $to, $subject, $message, $headers, $attachments );
+	function wp_mail( $to, $subject, $message, $headers = '', $attachments = [] ) { // @codingStandardsIgnoreLine
+		$result = AWS_SES_WP_Mail\SES::get_instance()->send_wp_mail( $to, $subject, $message, $headers, $attachments );
 
-	if ( is_wp_error( $result ) ) {
-		trigger_error(
-			sprintf( 'Sendmail SES Email failed: %d %s', $result->get_error_code(), $result->get_error_message() ),
-			E_USER_WARNING
-		);
-		return false;
+		if ( is_wp_error( $result ) ) {
+			trigger_error(
+				sprintf( 'Sendmail SES Email failed: %d %s', $result->get_error_code(), $result->get_error_message() ),
+				E_USER_WARNING
+			);
+			return false;
+		}
+
+		return $result;
 	}
-
-	return $result;
-}
 endif;

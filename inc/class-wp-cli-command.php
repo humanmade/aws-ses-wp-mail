@@ -3,7 +3,6 @@
 namespace AWS_SES_WP_Mail;
 
 use WP_CLI;
-use WP_Error;
 
 /**
  * Manage and send email via AWS SES.
@@ -40,9 +39,11 @@ class WP_CLI_Command extends \WP_CLI_Command {
 	public function send( $args, $args_assoc ) {
 
 		if ( ! empty( $args_assoc['from-email'] ) ) {
-			add_filter( 'wp_mail_from', function() use ( $args_assoc ) {
-				return $args_assoc['from-email'];
-			});
+			add_filter(
+				'wp_mail_from', function() use ( $args_assoc ) {
+					return $args_assoc['from-email'];
+				}
+			);
 		}
 		$headers     = [];
 		$attachments = [];
@@ -77,7 +78,7 @@ class WP_CLI_Command extends \WP_CLI_Command {
 	public function verify_sending_domain( $args, $args_assoc ) {
 
 		// Get the site domain and get rid of www.
-		$domain = strtolower( parse_url( site_url(), PHP_URL_HOST ) );
+		$domain = strtolower( wp_parse_url( site_url(), PHP_URL_HOST ) );
 		if ( 'www.' === substr( $domain, 0, 4 ) ) {
 			$domain = substr( $domain, 4 );
 		}
@@ -90,7 +91,7 @@ class WP_CLI_Command extends \WP_CLI_Command {
 
 		WP_CLI::line( 'Submitted for verification. Make sure you have the following DNS records added to the domain:' );
 
-		\WP_CLI\Utils\format_items( 'table', $dns_records, array( 'Domain', 'Type', 'Value' ) );
+		\WP_CLI\Utils\format_items( 'table', $dns_records, [ 'Domain', 'Type', 'Value' ] );
 	}
 
 	protected function get_sending_domain_dns_records( $domain ) {
@@ -101,29 +102,33 @@ class WP_CLI_Command extends \WP_CLI_Command {
 		}
 
 		try {
-			$verify = $ses->verifyDomainIdentity( array(
-				'Domain' => $domain,
-			));
+			$verify = $ses->verifyDomainIdentity(
+				[
+					'Domain' => $domain,
+				]
+			);
 		} catch ( \Exception $e ) {
 			WP_CLI::error( get_class( $e ) . ': ' . $e->getMessage() );
 		}
 
-		$dkim = $ses->verifyDomainDkim( array(
-			'Domain' => $domain,
-		));
+		$dkim = $ses->verifyDomainDkim(
+			[
+				'Domain' => $domain,
+			]
+		);
 
-		$dns_records[] = array(
+		$dns_records[] = [
 			'Domain' => '_amazonses.' . $domain,
 			'Type'   => 'TXT',
 			'Value'  => $verify['VerificationToken'],
-		);
+		];
 
 		foreach ( $dkim['DkimTokens'] as $token ) {
-			$dns_records[] = array(
+			$dns_records[] = [
 				'Domain' => $token . '._domainkey.' . $domain,
 				'Type'   => 'CNAME',
 				'Value'  => $token . '.dkim.amazonses.com',
-			);
+			];
 		}
 
 		return $dns_records;
