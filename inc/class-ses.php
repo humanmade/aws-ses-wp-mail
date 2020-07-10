@@ -293,7 +293,7 @@ class SES {
 
 		// If custom from address is not present in header, generate it.
 		if ( ! $custom_from ) {
-			$custom_from = sprintf( '%s <%s>', apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) ), apply_filters( 'wp_mail_from', $from_email ) );
+			$custom_from = sprintf( '"%s" <%s>', apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) ), apply_filters( 'wp_mail_from', $from_email ) );
 		}
 		$boundary     = 'aws-ses-wp-mail-' . wp_rand();
 		$raw_message  = $raw_message_header;
