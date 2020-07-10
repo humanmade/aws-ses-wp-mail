@@ -287,7 +287,7 @@ class SES {
 			$sitename = substr( $sitename, 4 );
 		}
 
-		$from_email = 'wordpress@' . $sitename;
+		$from_email = 'no-reply@' . $sitename;
 
 		// If custom from address is not present in header, generate it.
 		if ( ! $custom_from ) {
