@@ -154,7 +154,7 @@ class SES {
 							'Data'    => $message_args['subject'],
 							'Charset' => get_bloginfo( 'charset' ),
 						],
-						'Body'    => [],
+						'Body'   => [],
 					],
 				];
 
@@ -173,7 +173,7 @@ class SES {
 				}
 
 				if ( ! empty( $message_args['headers']['Reply-To'] ) ) {
-					$replyto                  = explode( ',', $message_args['headers']['Reply-To'] );
+					$replyto = explode( ',', $message_args['headers']['Reply-To'] );
 					$args['ReplyToAddresses'] = array_map( 'trim', $replyto );
 				}
 
@@ -182,17 +182,15 @@ class SES {
 						continue;
 					}
 
-					$addrs                                      = explode( ',', $message_args['headers'][ $type ] );
+					$addrs = explode( ',', $message_args['headers'][ $type ] );
 					$args['Destination'][ $type . 'Addresses' ] = array_map( 'trim', $addrs );
 				}
 
 				$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
-
 				$result = $ses->sendEmail( $args );
 			}
 		} catch ( Exception $e ) {
 			do_action( 'aws_ses_wp_mail_ses_error_sending_message', $e, $args, $message_args );
-
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
 
