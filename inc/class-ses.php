@@ -101,11 +101,11 @@ class SES {
 
 		$message_args = [
 			// Email
-			'subject' => $subject,
-			'to'      => $to,
-			'headers' => [
-				'Content-Type' => apply_filters( 'wp_mail_content_type', 'text/plain' ),
-				'From'         => sprintf( '"%s" <%s>', apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) ), apply_filters( 'wp_mail_from', $from_email ) ),
+			'subject'                    => $subject,
+			'to'                         => $to,
+			'headers'                    => [
+				'Content-Type'           => apply_filters( 'wp_mail_content_type', 'text/plain' ),
+				'From'                   => sprintf( '"%s" <%s>', apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) ), apply_filters( 'wp_mail_from', $from_email ) ),
 			],
 		];
 		$message_args['headers'] = array_merge( $message_args['headers'], $headers );
