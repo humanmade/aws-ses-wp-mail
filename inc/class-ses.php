@@ -217,7 +217,9 @@ class SES {
 		$custom_from        = false;
 		$raw_message_header = '';
 
-		$cc = $bcc = $reply_to = [];
+		$cc = [];
+		$bcc = [];
+		$reply_to = [];
 
 		// Filter initial content type, if custom header present then it will overwrite it.
 		$content_type = apply_filters( 'wp_mail_content_type', 'text/plain' );
@@ -282,7 +284,7 @@ class SES {
 		}
 
 		// Get the site domain and get rid of www.
-		$sitename = strtolower( parse_url( site_url(), PHP_URL_HOST ) );
+		$sitename = strtolower( wp_parse_url( site_url(), PHP_URL_HOST ) );
 		if ( 'www.' === substr( $sitename, 0, 4 ) ) {
 			$sitename = substr( $sitename, 4 );
 		}
@@ -334,7 +336,7 @@ class SES {
 
 			$filename = basename( $attachment );
 
-			$data = file_get_contents( $attachment );
+			$data = file_get_contents( $attachment ); // phpcs:ignore:WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 
 			$file_type = wp_check_filetype( $filename );
 
