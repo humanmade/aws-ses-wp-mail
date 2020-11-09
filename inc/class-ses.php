@@ -99,7 +99,19 @@ class SES {
 			$sitename = substr( $sitename, 4 );
 		}
 
-		$from_email = 'no-reply@' . $sitename;
+		/**
+		 * Filters the address email is sent from.
+		 *
+		 * @param string $from_email The email address to send from.
+		 */
+		$from_email = apply_filters( 'wp_mail_from', 'no-reply@' . $sitename );
+
+		/**
+		 * Filters the name for the email sender.
+		 *
+		 * @param string $from_name The name to send email from.
+		 */
+		$from_name = apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) );
 
 		$message_args = [
 			// Email
@@ -107,7 +119,7 @@ class SES {
 			'to'                         => $to,
 			'headers'                    => [
 				'Content-Type'           => apply_filters( 'wp_mail_content_type', 'text/plain' ),
-				'From'                   => sprintf( '"%s" <%s>', apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) ), apply_filters( 'wp_mail_from', $from_email ) ),
+				'From'                   => sprintf( '"%s" <%s>', mb_encode_mimeheader( $from_name ), $from_email ),
 			],
 		];
 		$message_args['headers'] = array_merge( $message_args['headers'], $headers );
