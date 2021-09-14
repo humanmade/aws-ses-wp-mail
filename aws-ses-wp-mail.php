@@ -27,6 +27,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 
 		if ( is_wp_error( $result ) ) {
 			trigger_error(
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				sprintf( 'Sendmail SES Email failed: %d %s', $result->get_error_code(), $result->get_error_message() ),
 				E_USER_WARNING
 			);
