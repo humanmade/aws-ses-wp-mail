@@ -11,6 +11,7 @@ class SES {
 	private static $instance;
 	private $key;
 	private $secret;
+	private $config_set;
 
 	/**
 	 *
@@ -20,9 +21,10 @@ class SES {
 
 		if ( ! self::$instance ) {
 
-			$key    = defined( 'AWS_SES_WP_MAIL_KEY' ) ? AWS_SES_WP_MAIL_KEY : null;
-			$secret = defined( 'AWS_SES_WP_MAIL_SECRET' ) ? AWS_SES_WP_MAIL_SECRET : null;
-			$region = defined( 'AWS_SES_WP_MAIL_REGION' ) ? AWS_SES_WP_MAIL_REGION : null;
+			$key    	= defined( 'AWS_SES_WP_MAIL_KEY' ) ? AWS_SES_WP_MAIL_KEY : null;
+			$secret 	= defined( 'AWS_SES_WP_MAIL_SECRET' ) ? AWS_SES_WP_MAIL_SECRET : null;
+			$region 	= defined( 'AWS_SES_WP_MAIL_REGION' ) ? AWS_SES_WP_MAIL_REGION : null;
+			$config_set = defined( 'AWS_SES_WP_MAIL_CONFIG_SET' ) ? AWS_SES_WP_MAIL_CONFIG_SET : null;
 
 			self::$instance = new static( $key, $secret, $region );
 		}
@@ -30,10 +32,11 @@ class SES {
 		return self::$instance;
 	}
 
-	public function __construct( $key, $secret, $region = null ) {
-		$this->key = $key;
-		$this->secret = $secret;
-		$this->region = $region;
+	public function __construct( $key, $secret, $config_set = null, $region = null ) {
+		$this->key 		  = $key;
+		$this->secret 	  = $secret;
+		$this->region 	  = $region;
+		$this->config_set = $config_set;
 	}
 
 	/**
@@ -158,6 +161,7 @@ class SES {
 					],
 					'Body'   => [],
 				],
+				'ConfigurationSetName' => $this->config_set,
 			];
 
 			if ( isset( $message_args['text'] ) ) {
