@@ -32,7 +32,7 @@ class SES {
 		return self::$instance;
 	}
 
-	public function __construct( $key, $secret, $region = null, $config_set = null ) {
+	public function __construct( $key, $secret, $region = null, $config_set = "" ) {
 		$this->key 		  = $key;
 		$this->secret 	  = $secret;
 		$this->region 	  = $region;
