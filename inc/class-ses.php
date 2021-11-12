@@ -33,9 +33,9 @@ class SES {
 	}
 
 	public function __construct( $key, $secret, $region = null, $config_set = "" ) {
-		$this->key 		  = $key;
-		$this->secret 	  = $secret;
-		$this->region 	  = $region;
+		$this->key = $key;
+		$this->secret = $secret;
+		$this->region = $region;
 		$this->config_set = $config_set;
 	}
 
