@@ -21,6 +21,6 @@
   "require": {
     "php": ">=5.3",
     "composer/installers": "~1.0",
-    "aws/aws-sdk-php": "~3.18"
+    "aws/aws-sdk-php": "^3.18.0"
   }
 }
