@@ -161,8 +161,11 @@ class SES {
 					],
 					'Body'   => [],
 				],
-				'ConfigurationSetName' => $this->config_set,
 			];
+
+			if ( ! empty( $this->config_set ) ) {
+				$args['ConfigurationSetName'] = $this->config_set;
+			}
 
 			if ( isset( $message_args['text'] ) ) {
 				$args['Message']['Body']['Text'] = [
