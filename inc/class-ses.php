@@ -26,7 +26,7 @@ class SES {
 			$region = defined( 'AWS_SES_WP_MAIL_REGION' ) ? AWS_SES_WP_MAIL_REGION : null;
 			$config_set = defined( 'AWS_SES_WP_MAIL_CONFIG_SET' ) ? AWS_SES_WP_MAIL_CONFIG_SET : null;
 
-			self::$instance = new static( $key, $secret, $region );
+			self::$instance = new static( $key, $secret, $region, $config_set );
 		}
 
 		return self::$instance;
