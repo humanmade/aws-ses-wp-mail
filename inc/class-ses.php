@@ -202,6 +202,8 @@ class SES {
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
 
+		do_action( 'wp_mail_succeeded', $message_args );
+
 		do_action( 'aws_ses_wp_mail_ses_sent_message', $result, $args, $message_args );
 		return true;
 	}
