@@ -207,12 +207,12 @@ class SES {
 			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
 			$result = $ses->sendEmail( $args );
 		} catch ( Exception $e ) {
-			$error = new WP_Error( get_class( $e ), $e->getMessage() );
+			$error = new WP_Error( 'wp_mail_failed', $e->getMessage() );
 
 			do_action( 'wp_mail_failed', $error, $message_args );
 
 			do_action( 'aws_ses_wp_mail_ses_error_sending_message', $e, $args, $message_args );
-			return $error;
+			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
 
 		do_action( 'wp_mail_succeeded', $message_args );
