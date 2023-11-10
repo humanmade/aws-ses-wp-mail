@@ -67,7 +67,13 @@ class SES {
 		}
 
 		// Extract the input
-		extract( $atts ); // @codingStandardsIgnoreLine
+		list(
+			'to' => $to,
+			'subject' => $subject,
+			'message' => $message,
+			'headers' => $headers,
+			'attachments' => $attachments,
+		) = $atts;
 
 		// Get headers as array
 		if ( empty( $headers ) ) {
