@@ -116,16 +116,30 @@ class SES {
 		 */
 		$from_name = apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) );
 
+		$from_header = sprintf( '"%s" <%s>', mb_encode_mimeheader( $from_name ), $from_email );
+
 		$message_args = [
 			// Email
 			'subject'                    => $subject,
 			'to'                         => $to,
 			'headers'                    => [
 				'Content-Type'           => apply_filters( 'wp_mail_content_type', 'text/plain' ),
-				'From'                   => sprintf( '"%s" <%s>', mb_encode_mimeheader( $from_name ), $from_email ),
+				'From'                   => $from_header,
 			],
 		];
 		$message_args['headers'] = array_merge( $message_args['headers'], $headers );
+
+		// Confirm verified sending domain is in use - some default WP emails use the network admin email as sender
+		// See ms-functions.php.
+		if ( strpos( $message_args['headers']['From'], substr( $from_email, strpos( $from_email, '@' ) ) ) === false ) {
+			$message_args['headers']['From'] = $from_header;
+		}
+
+		/**
+		 * Filters the message args before the text / html content is set.
+		 *
+		 * @param array $message_args The message args.
+		 */
 		$message_args = apply_filters( 'aws_ses_wp_mail_pre_message_args', $message_args );
 
 		// Make sure our to value is an array so we can manipulate it for the API.
