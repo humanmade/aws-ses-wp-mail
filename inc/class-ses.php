@@ -74,7 +74,7 @@ class SES {
 		// transform headers array into a key => value map
 		foreach ( $headers as $header => $value ) {
 			if ( strpos( $value, ':' ) ) {
-				$value = array_map( 'trim', explode( ':', $value ) );
+				$value = array_map( 'trim', explode( ':', $value, 2 ) );
 				$headers[ $value[0] ] = $value[1];
 
 				// Gravity Forms uses an array like
