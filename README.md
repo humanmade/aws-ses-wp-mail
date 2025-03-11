@@ -26,6 +26,7 @@ Once you have `git clone`d the repo, or added it as a Git Submodule, add the fol
 define( 'AWS_SES_WP_MAIL_REGION', 'us-east-1' );
 define( 'AWS_SES_WP_MAIL_KEY', '' );
 define( 'AWS_SES_WP_MAIL_SECRET', '' );
+define( 'AWS_SES_WP_MAIL_CONFIG_SET', '' );
 ```
 
 If you plan to use IAM instance profiles to protect your AWS credentials on disk you'll need the following configuration instead:
@@ -45,6 +46,12 @@ wp aws-ses verify-sending-domain
 Once you have verified your sending domain, you are all good to go!
 
 **Note:** If you have not used SES in production previously, you need to apply to [move out of the Amazon SES sandbox](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html).
+
+### Configuration Sets
+
+To better track your mail activity for monitoring or statistics you can use the configuration sets. To enable it you will first need to create your Configuration Set on AWS SES Console and add the configuration set name as the value to the `AWS_SES_WP_MAIL_CONFIG_SET` constant. 
+
+Detailed information on the setup and usage you find here: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/using-configuration-sets.html
 
 Other Commands
 =======
