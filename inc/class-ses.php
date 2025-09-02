@@ -58,8 +58,23 @@ class SES {
 	 */
 	public function send_wp_mail( $to, $subject, $message, $headers = [], $attachments = [] ) {
 
-		// Compact the input, apply the filters, and extract them back out
-		extract( apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) ) ); // @codingStandardsIgnoreLine
+		// Compact the input and apply the filters
+		$atts = apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) );
+
+		$pre_wp_mail = apply_filters( 'pre_wp_mail', null, $atts );
+
+		if ( null !== $pre_wp_mail ) {
+			return $pre_wp_mail;
+		}
+
+		// Extract the input
+		list(
+			'to' => $to,
+			'subject' => $subject,
+			'message' => $message,
+			'headers' => $headers,
+			'attachments' => $attachments,
+		) = $atts;
 
 		// Get headers as array
 		if ( empty( $headers ) ) {
@@ -199,9 +214,15 @@ class SES {
 			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
 			$result = $ses->sendEmail( $args );
 		} catch ( Exception $e ) {
+			$error = new WP_Error( 'wp_mail_failed', $e->getMessage() );
+
+			do_action( 'wp_mail_failed', $error, $message_args );
+
 			do_action( 'aws_ses_wp_mail_ses_error_sending_message', $e, $args, $message_args );
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
+
+		do_action( 'wp_mail_succeeded', $message_args );
 
 		do_action( 'aws_ses_wp_mail_ses_sent_message', $result, $args, $message_args );
 		return true;
