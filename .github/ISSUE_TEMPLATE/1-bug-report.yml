@@ -1,0 +1,94 @@
+name: Bug Report
+description: Report a bug
+title: "[Bug]: "
+type: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please read [this](https://engineering.hmn.md/projects/support/) before proceeding forward.
+        
+        Please note that we don't offer detailed end-user support.
+
+        This template is just for bug reports, not for questions.
+        
+        If the opened issue doesn't have all of the needed information, or it's off-topic, we will close it. 
+        
+        Please provide as much details as possible - some bugs are hard to investigate and reproduce.
+        
+        Thank you for helping us fix our product.
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version are you using?
+      placeholder: Version number
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behaviour
+      description: A precise description of what you expected to happen
+      placeholder: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behaviour
+      description: A precise description of what actually happened
+      placeholder: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: A precise description of what the bug is
+      placeholder: Describe the bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Precise steps to reproduce the behaviour
+      placeholder: |
+        Step 1
+        Step 2
+        Step 3...
+    validations:
+      required: true
+
+  - type: textarea
+    id: code_sample
+    attributes:
+      label: Code Sample
+      description: If you believe it would help, please add a minimal code sample that reproduces the issue
+      placeholder: Your code goes here
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Logs
+      description: If you believe it would help, please add any error messages or logs
+      placeholder: Error messages go here.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: Additional Info
+      description: Add any other info about the problem here (screenshots, videos, related issues, etc.)
+      placeholder: Additional information that might help.
+    validations:
+      required: false

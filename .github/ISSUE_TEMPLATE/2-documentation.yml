@@ -1,0 +1,83 @@
+name: Documentation Issue
+description: Report an issue with documentation
+title: "[Docs]: "
+type: task
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please read [this](https://engineering.hmn.md/projects/support/) before proceeding forward.
+        
+        Please note that we don't offer detailed end-user support.
+
+        This template is just for documentation issues, not for questions.
+        
+        If the opened issue doesn't have all of the needed information, or it's off-topic, we will close it.
+        
+        Please provide as much details as possible about the documentation issue you've found.
+        
+        Thank you for helping us improve our documentation.
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue Type
+      description: What kind of documentation issue is this?
+      options:
+        - "Missing documentation"
+        - "Incorrect information"
+        - "Outdated information"
+        - "Unclear/confusing explanation"
+        - "Broken example/code"
+        - "Typo/grammar error"
+        - "Missing example"
+        - "Broken link"
+        - "Other"
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Documentation Location
+      description: Where is this documentation located?
+      placeholder: "Document URL goes here"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Issue Description
+      description: Describe the documentation issue in detail
+      placeholder: "Documentation issue explanation goes here"
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-content
+    attributes:
+      label: Current Content
+      description: If you believe it would help, please copy the current documentation content that needs to be fixed
+      render: markdown
+      placeholder: "Current documentation content."
+
+  - type: textarea
+    id: suggested-content
+    attributes:
+      label: Suggested Improvement
+      description: How do you think this should be documented instead?
+      render: markdown
+      placeholder: "Suggested documentation content."
+
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: Additional Info
+      description: Add any other info that would help us improve the documentation
+      placeholder: |
+        - This confused me because...
+        - Screenshots would have been helpful because...
+        - Detailed output would have been valuable because...
+
+ 
