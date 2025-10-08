@@ -19,19 +19,10 @@ body:
         Thank you for helping us build a better product.
 
   - type: textarea
-    id: context
-    attributes:
-      label: Context
-      description: Is this request related to a specific problem, workflow, or limitation?
-      placeholder: Describe the background or scenario that led to this request.
-    validations:
-      required: true
-
-  - type: textarea
     id: current_behaviour
     attributes:
-      label: Current Behaviour
-      description: A precise description of how things work now
+      label: Current Behaviour and Context
+      description: Describe the scenario that led to this request.
       placeholder: How is it working now?
     validations:
       required: true
@@ -40,39 +31,16 @@ body:
     id: improved_behaviour
     attributes:
       label: Improved Behaviour
-      description: A precise description of how things should work
+      description: Description of how things should work.
       placeholder: How it should be working?
     validations:
       required: true
 
   - type: textarea
-    id: impact
+    id: additional_info
     attributes:
-      label: Impact
-      description: An explanation why you believe this brings value and what's the impact on other users
-      placeholder: |
-        What's the value?
-        What's the impact?
-    validations:
-      required: true
-
-  - type: textarea
-    id: possible_solutions
-    attributes:
-      label: Possible Solutions
-      description: Do you already have ideas or examples of how this could be implemented?
+      label: Additional Info
+      description: Any additional info, including ideas or examples of how this could be implemented.
       placeholder: Share your thoughts, examples, or references.
-    validations:
-      required: false
-      
-  - type: textarea
-    id: acceptance_criteria
-    attributes:
-      label: Acceptance Criteria
-      description: When would you say this feature is complete? List clear conditions or test cases.
-      placeholder: |
-        - [ ] User can do X
-        - [ ] Feature works under Y condition
-        - [ ] Documentation updated
     validations:
       required: false

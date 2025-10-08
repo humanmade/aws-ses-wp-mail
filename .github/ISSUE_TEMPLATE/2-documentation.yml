@@ -49,7 +49,7 @@ body:
     id: description
     attributes:
       label: Issue Description
-      description: Describe the documentation issue in detail
+      description: Describe the documentation issue in detail.
       placeholder: "Documentation issue explanation goes here"
     validations:
       required: true
@@ -58,7 +58,7 @@ body:
     id: current-content
     attributes:
       label: Current Content
-      description: If you believe it would help, please copy the current documentation content that needs to be fixed
+      description: If you believe it would help, please copy the current documentation content that needs to be fixed.
       render: markdown
       placeholder: "Current documentation content."
 
@@ -74,7 +74,7 @@ body:
     id: additional_info
     attributes:
       label: Additional Info
-      description: Add any other info that would help us improve the documentation
+      description: Add any other info that would help us improve the documentation.
       placeholder: |
         - This confused me because...
         - Screenshots would have been helpful because...
