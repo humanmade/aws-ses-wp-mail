@@ -212,7 +212,20 @@ class SES {
 			}
 
 			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
-			$result = $ses->sendEmail( $args );
+
+			// Check for custom headers that sendEmail doesn't support.
+			// If present, use sendRawEmail to preserve them (e.g. List-Unsubscribe).
+			$standard_headers = [ 'Content-Type', 'From', 'Reply-To', 'Cc', 'Bcc' ];
+			$custom_headers = array_diff_key(
+				$message_args['headers'],
+				array_flip( $standard_headers )
+			);
+
+			if ( ! empty( $custom_headers ) ) {
+				$result = $this->send_raw_email( $ses, $args, $message_args, $custom_headers );
+			} else {
+				$result = $ses->sendEmail( $args );
+			}
 		} catch ( Exception $e ) {
 			$error = new WP_Error( 'wp_mail_failed', $e->getMessage() );
 
@@ -226,6 +239,72 @@ class SES {
 
 		do_action( 'aws_ses_wp_mail_ses_sent_message', $result, $args, $message_args );
 		return true;
+	}
+
+	/**
+	 * Send an email using sendRawEmail to support custom headers.
+	 *
+	 * Used when headers like List-Unsubscribe are present, which
+	 * the structured sendEmail API doesn't support.
+	 *
+	 * @param SesClient $ses            The SES client.
+	 * @param array     $args           The sendEmail args (for Source, Destination, etc).
+	 * @param array     $message_args   The processed wp_mail message args.
+	 * @param array     $custom_headers Additional headers to include.
+	 * @return \Aws\Result The SES response.
+	 */
+	private function send_raw_email( SesClient $ses, array $args, array $message_args, array $custom_headers ) {
+		$charset = get_bloginfo( 'charset' );
+
+		// Build MIME headers.
+		$mime = '';
+		$mime .= 'From: ' . $args['Source'] . "\r\n";
+		$mime .= 'To: ' . implode( ', ', $args['Destination']['ToAddresses'] ) . "\r\n";
+
+		if ( ! empty( $args['Destination']['CcAddresses'] ) ) {
+			$mime .= 'Cc: ' . implode( ', ', $args['Destination']['CcAddresses'] ) . "\r\n";
+		}
+
+		if ( ! empty( $args['ReplyToAddresses'] ) ) {
+			$mime .= 'Reply-To: ' . implode( ', ', $args['ReplyToAddresses'] ) . "\r\n";
+		}
+
+		$mime .= 'Subject: =?' . $charset . '?B?' . base64_encode( $message_args['subject'] ) . "?=\r\n";
+		$mime .= 'MIME-Version: 1.0' . "\r\n";
+
+		// Add custom headers (List-Unsubscribe, etc).
+		foreach ( $custom_headers as $name => $value ) {
+			$mime .= $name . ': ' . $value . "\r\n";
+		}
+
+		// Content type and body.
+		if ( isset( $message_args['html'] ) ) {
+			$mime .= 'Content-Type: text/html; charset=' . $charset . "\r\n";
+			$mime .= "\r\n";
+			$mime .= $message_args['html'];
+		} else {
+			$mime .= 'Content-Type: text/plain; charset=' . $charset . "\r\n";
+			$mime .= "\r\n";
+			$mime .= $message_args['text'] ?? '';
+		}
+
+		$raw_args = [
+			'Source' => $args['Source'],
+			'Destinations' => $args['Destination']['ToAddresses'],
+			'RawMessage' => [
+				'Data' => $mime,
+			],
+		];
+
+		if ( ! empty( $args['ConfigurationSetName'] ) ) {
+			$raw_args['ConfigurationSetName'] = $args['ConfigurationSetName'];
+		}
+
+		if ( ! empty( $args['Tags'] ) ) {
+			$raw_args['Tags'] = $args['Tags'];
+		}
+
+		return $ses->sendRawEmail( $raw_args );
 	}
 
 	/**
