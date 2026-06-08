@@ -3,6 +3,7 @@
 namespace AWS_SES_WP_Mail;
 
 use Aws\Ses\SesClient;
+use Aws\SesV2\SesV2Client;
 use Exception;
 use WP_Error;
 
@@ -13,6 +14,7 @@ class SES {
 	private $secret;
 	private $config_set;
 	private $client;
+	private $use_v2 = false;
 
 	/**
 	 *
@@ -133,12 +135,11 @@ class SES {
 		$from_name = apply_filters( 'wp_mail_from_name', get_bloginfo( 'name' ) );
 
 		$message_args = [
-			// Email
-			'subject'                    => $subject,
-			'to'                         => $to,
-			'headers'                    => [
-				'Content-Type'           => apply_filters( 'wp_mail_content_type', 'text/plain' ),
-				'From'                   => sprintf( '"%s" <%s>', mb_encode_mimeheader( $from_name ), $from_email ),
+			'subject'  => $subject,
+			'to'       => $to,
+			'headers'  => [
+				'Content-Type' => apply_filters( 'wp_mail_content_type', 'text/plain' ),
+				'From'         => sprintf( '"%s" <%s>', mb_encode_mimeheader( $from_name ), $from_email ),
 			],
 		];
 		$message_args['headers'] = array_merge( $message_args['headers'], $headers );
@@ -155,7 +156,7 @@ class SES {
 			$message_args['html'] = $message;
 		}
 
-		// Allow user to override message args before they're sent to Mandrill.
+		// Allow user to override message args before they're sent.
 		$message_args = apply_filters( 'aws_ses_wp_mail_message_args', $message_args );
 
 		$ses = $this->get_client();
@@ -165,50 +166,10 @@ class SES {
 		}
 
 		try {
-			$args = [
-				'Source'      => $message_args['headers']['From'],
-				'Destination' => [
-					'ToAddresses' => $message_args['to'],
-				],
-				'Message'     => [
-					'Subject' => [
-						'Data'    => $message_args['subject'],
-						'Charset' => get_bloginfo( 'charset' ),
-					],
-					'Body'   => [],
-				],
-			];
-
-			if ( ! empty( $this->config_set ) ) {
-				$args['ConfigurationSetName'] = $this->config_set;
-			}
-
-			if ( isset( $message_args['text'] ) ) {
-				$args['Message']['Body']['Text'] = [
-					'Data'    => $message_args['text'],
-					'Charset' => get_bloginfo( 'charset' ),
-				];
-			}
-
-			if ( isset( $message_args['html'] ) ) {
-				$args['Message']['Body']['Html'] = [
-					'Data'    => $message_args['html'],
-					'Charset' => get_bloginfo( 'charset' ),
-				];
-			}
-
-			if ( ! empty( $message_args['headers']['Reply-To'] ) ) {
-				$replyto = explode( ',', $message_args['headers']['Reply-To'] );
-				$args['ReplyToAddresses'] = array_map( 'trim', $replyto );
-			}
-
-			foreach ( [ 'Cc', 'Bcc' ] as $type ) {
-				if ( empty( $message_args['headers'][ $type ] ) ) {
-					continue;
-				}
-
-				$addrs = explode( ',', $message_args['headers'][ $type ] );
-				$args['Destination'][ $type . 'Addresses' ] = array_map( 'trim', $addrs );
+			if ( $this->use_v2 ) {
+				$args = $this->build_v2_args( $message_args );
+			} else {
+				$args = $this->build_v1_args( $message_args );
 			}
 
 			$args = apply_filters( 'aws_ses_wp_mail_ses_send_message_args', $args, $message_args );
@@ -217,21 +178,139 @@ class SES {
 			$error = new WP_Error( 'wp_mail_failed', $e->getMessage() );
 
 			do_action( 'wp_mail_failed', $error, $message_args );
-
 			do_action( 'aws_ses_wp_mail_ses_error_sending_message', $e, $args, $message_args );
+
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
 
 		do_action( 'wp_mail_succeeded', $message_args );
-
 		do_action( 'aws_ses_wp_mail_ses_sent_message', $result, $args, $message_args );
+
 		return true;
 	}
 
 	/**
-	 * Get the client for AWS SES.
+	 * Build SESv2 SendEmail args.
 	 *
-	 * @return SesClient|WP_Error
+	 * @param array $message_args
+	 * @return array
+	 */
+	private function build_v2_args( array $message_args ) : array {
+		$charset = get_bloginfo( 'charset' );
+
+		$args = [
+			'FromEmailAddress' => $message_args['headers']['From'],
+			'Destination'      => [
+				'ToAddresses' => $message_args['to'],
+			],
+			'Content'          => [
+				'Simple' => [
+					'Subject' => [
+						'Data'    => $message_args['subject'],
+						'Charset' => $charset,
+					],
+					'Body'    => [],
+				],
+			],
+		];
+
+		if ( ! empty( $this->config_set ) ) {
+			$args['ConfigurationSetName'] = $this->config_set;
+		}
+
+		if ( isset( $message_args['text'] ) ) {
+			$args['Content']['Simple']['Body']['Text'] = [
+				'Data'    => $message_args['text'],
+				'Charset' => $charset,
+			];
+		}
+
+		if ( isset( $message_args['html'] ) ) {
+			$args['Content']['Simple']['Body']['Html'] = [
+				'Data'    => $message_args['html'],
+				'Charset' => $charset,
+			];
+		}
+
+		if ( ! empty( $message_args['headers']['Reply-To'] ) ) {
+			$replyto = explode( ',', $message_args['headers']['Reply-To'] );
+			$args['ReplyToAddresses'] = array_map( 'trim', $replyto );
+		}
+
+		foreach ( [ 'Cc', 'Bcc' ] as $type ) {
+			if ( empty( $message_args['headers'][ $type ] ) ) {
+				continue;
+			}
+
+			$addrs = explode( ',', $message_args['headers'][ $type ] );
+			$args['Destination'][ $type . 'Addresses' ] = array_map( 'trim', $addrs );
+		}
+
+		return $args;
+	}
+
+	/**
+	 * Build SESv1 SendEmail args.
+	 *
+	 * @param array $message_args
+	 * @return array
+	 */
+	private function build_v1_args( array $message_args ) : array {
+		$charset = get_bloginfo( 'charset' );
+
+		$args = [
+			'Source'      => $message_args['headers']['From'],
+			'Destination' => [
+				'ToAddresses' => $message_args['to'],
+			],
+			'Message'     => [
+				'Subject' => [
+					'Data'    => $message_args['subject'],
+					'Charset' => $charset,
+				],
+				'Body'    => [],
+			],
+		];
+
+		if ( ! empty( $this->config_set ) ) {
+			$args['ConfigurationSetName'] = $this->config_set;
+		}
+
+		if ( isset( $message_args['text'] ) ) {
+			$args['Message']['Body']['Text'] = [
+				'Data'    => $message_args['text'],
+				'Charset' => $charset,
+			];
+		}
+
+		if ( isset( $message_args['html'] ) ) {
+			$args['Message']['Body']['Html'] = [
+				'Data'    => $message_args['html'],
+				'Charset' => $charset,
+			];
+		}
+
+		if ( ! empty( $message_args['headers']['Reply-To'] ) ) {
+			$replyto = explode( ',', $message_args['headers']['Reply-To'] );
+			$args['ReplyToAddresses'] = array_map( 'trim', $replyto );
+		}
+
+		foreach ( [ 'Cc', 'Bcc' ] as $type ) {
+			if ( empty( $message_args['headers'][ $type ] ) ) {
+				continue;
+			}
+
+			$addrs = explode( ',', $message_args['headers'][ $type ] );
+			$args['Destination'][ $type . 'Addresses' ] = array_map( 'trim', $addrs );
+		}
+
+		return $args;
+	}
+
+	/**
+	 * Get the SES client. Prefers SESv2, falls back to SESv1.
+	 *
+	 * @return SesV2Client|SesClient|WP_Error
 	 */
 	public function get_client() {
 		if ( ! empty( $this->client ) ) {
@@ -244,7 +323,7 @@ class SES {
 
 		if ( $this->key && $this->secret ) {
 			$params['credentials'] = [
-				'key' => $this->key,
+				'key'    => $this->key,
 				'secret' => $this->secret,
 			];
 		}
@@ -268,7 +347,13 @@ class SES {
 		$params = apply_filters( 'aws_ses_wp_mail_ses_client_params', $params );
 
 		try {
-			$this->client = SesClient::factory( $params );
+			if ( class_exists( SesV2Client::class ) ) {
+				$this->client = new SesV2Client( $params );
+				$this->use_v2 = true;
+			} else {
+				$this->client = SesClient::factory( $params );
+				$this->use_v2 = false;
+			}
 		} catch ( Exception $e ) {
 			return new WP_Error( get_class( $e ), $e->getMessage() );
 		}
