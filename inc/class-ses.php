@@ -13,6 +13,8 @@ class SES {
 	private $key;
 	private $secret;
 	private $config_set;
+	private $tenant_name;
+	private $region;
 	private $client;
 	private $use_v2 = false;
 
@@ -28,18 +30,20 @@ class SES {
 			$secret = defined( 'AWS_SES_WP_MAIL_SECRET' ) ? AWS_SES_WP_MAIL_SECRET : null;
 			$region = defined( 'AWS_SES_WP_MAIL_REGION' ) ? AWS_SES_WP_MAIL_REGION : null;
 			$config_set = defined( 'AWS_SES_WP_MAIL_CONFIG_SET' ) ? AWS_SES_WP_MAIL_CONFIG_SET : null;
+			$tenant_name = defined( 'AWS_SES_WP_MAIL_TENANT_NAME' ) ? AWS_SES_WP_MAIL_TENANT_NAME : null;
 
-			self::$instance = new static( $key, $secret, $region, $config_set );
+			self::$instance = new static( $key, $secret, $region, $config_set, $tenant_name );
 		}
 
 		return self::$instance;
 	}
 
-	public function __construct( $key, $secret, $region = null, $config_set = null ) {
+	public function __construct( $key, $secret, $region = null, $config_set = null, $tenant_name = null ) {
 		$this->key = $key;
 		$this->secret = $secret;
 		$this->region = $region;
 		$this->config_set = $config_set;
+		$this->tenant_name = $tenant_name;
 	}
 
 	/**
@@ -216,6 +220,10 @@ class SES {
 
 		if ( ! empty( $this->config_set ) ) {
 			$args['ConfigurationSetName'] = $this->config_set;
+		}
+
+		if ( ! empty( $this->tenant_name ) ) {
+			$args['TenantName'] = $this->tenant_name;
 		}
 
 		if ( isset( $message_args['text'] ) ) {
