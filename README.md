@@ -49,9 +49,22 @@ Once you have verified your sending domain, you are all good to go!
 
 ### Configuration Sets
 
-To better track your mail activity for monitoring or statistics you can use the configuration sets. To enable it you will first need to create your Configuration Set on AWS SES Console and add the configuration set name as the value to the `AWS_SES_WP_MAIL_CONFIG_SET` constant. 
+To better track your mail activity for monitoring or statistics you can use the configuration sets. To enable it you will first need to create your Configuration Set on AWS SES Console and add the configuration set name as the value to the `AWS_SES_WP_MAIL_CONFIG_SET` constant.
 
 Detailed information on the setup and usage you find here: https://docs.aws.amazon.com/ses/latest/DeveloperGuide/using-configuration-sets.html
+
+### SESv2 and Tenant Isolation
+
+This plugin automatically uses the **AWS SESv2 API** when `Aws\SesV2\SesV2Client` is available in the installed SDK (requires `aws/aws-sdk-php >= 3.133`), falling back to SESv1 for older SDK versions.
+
+To route sends through an SESv2 tenant (for reputation isolation and per-tenant statistics), set the tenant name constant:
+
+```PHP
+define( 'AWS_SES_WP_MAIL_TENANT_NAME', 'your-tenant-name' );
+```
+
+**IAM permissions:** When using SESv2, your IAM policy must include `sesv2:SendEmail` in addition to the existing `ses:SendEmail` action. The policy resources should include your identity ARNs, configuration set ARN, and tenant ARN.
+
 
 Other Commands
 =======
