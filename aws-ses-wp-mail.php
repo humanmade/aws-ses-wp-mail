@@ -14,6 +14,12 @@ if ( ( ! defined( 'AWS_SES_WP_MAIL_KEY' ) || ! defined( 'AWS_SES_WP_MAIL_SECRET'
 	return;
 }
 
+// Access to the Amazon SDK is required for this plugin to send mail.
+// It can be provided directly via composer install within this plugin, or as a dependency of your project.
+if ( is_readable( dirname( __FILE__ ) . '/vendor/autoload.php' ) ) {
+	require_once dirname( __FILE__ ) . '/vendor/autoload.php';
+}
+
 require_once dirname( __FILE__ ) . '/inc/class-ses.php';
 
 if ( defined( 'WP_CLI' ) && WP_CLI ) {

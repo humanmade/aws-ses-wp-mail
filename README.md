@@ -17,10 +17,21 @@
 
 AWS SES is a very simple UI-less plugin for sending `wp_mail()`s email via AWS SES.
 
-Getting Set Up
+Installation
 ==========
 
-Once you have `git clone`d the repo, or added it as a Git Submodule, add the following constants to your `wp-config.php`:
+The ideal approach for using this plugin is to install it via composer at the root of your project. This can prevent multiple versions of the Amazon SDK from being installed within your codebase. 
+
+```
+composer require humanmade/aws-ses-wp-mail
+```
+
+Otherwise, clone the plugin to  `/wp-content/plugins` and then run `composer install` within the resulting directory. 
+
+Configuration
+==========
+
+Once installed, add the following constants to your `wp-config.php`:
 
 ```PHP
 define( 'AWS_SES_WP_MAIL_REGION', 'us-east-1' );
