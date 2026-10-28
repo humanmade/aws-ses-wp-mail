@@ -6,7 +6,7 @@
  * Version:      0.1.1
  * Author:       Joe Hoyle | Human Made
  * Author URI:   https://github.com/humanmade
- * License:      GPL-2.0+
+ * License:      GPL-2.0-or-later
  * License URI:  http://www.gnu.org/licenses/gpl-2.0.html
  */
 
